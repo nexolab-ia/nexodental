@@ -1984,6 +1984,68 @@ textarea[aria-invalid="true"] {
 .schedule-dialog-footer .button-primary:hover { border-color: #2563eb; background: #2563eb; }
 .schedule-skeleton { display: grid; gap: 0.75rem; }
 .schedule-skeleton span { display: block; height: 70px; border: 1px solid #162235; border-radius: 6px; background: linear-gradient(90deg, #080e1a 25%, #162235 50%, #080e1a 75%); background-size: 200% 100%; animation: schedule-loading 1.3s ease-in-out infinite; }
+.absences-dialog { width: min(880px, calc(100vw - 2rem)); max-height: min(780px, calc(100dvh - 2rem)); margin: auto; padding: 0; overflow: hidden; border: 1px solid #162235; border-radius: 6px; background: #050b14; color: #fff; box-shadow: 0 18px 54px rgba(2, 6, 23, 0.72); }
+.absences-dialog::backdrop { background: rgba(2, 6, 23, 0.82); }
+.absences-shell, .absence-form { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; max-height: min(780px, calc(100dvh - 2rem)); }
+.absences-header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.85rem; padding: 1.25rem 1.5rem; border-block-end: 1px solid #162235; }
+.absences-header h2, .absences-header p { margin: 0; }
+.absences-header h2 { color: #fff; font: 700 1.25rem/1.3 var(--font-display); outline: none; }
+.absences-header p { margin-block-start: 0.28rem; color: #8a99ad; font-size: 0.86rem; }
+.absences-header-icon, .absence-card-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 6px; background: #3b82f6; color: #fff; }
+.absences-header-icon svg, .absence-card-icon svg, .absence-period svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.absences-close, .absence-delete { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #8a99ad; }
+.absences-close:hover, .absence-delete:hover { background: #0a1220; color: #fff; }
+.absences-close svg, .absence-delete svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.absences-content { min-height: 300px; padding: 1.25rem 1.5rem; overflow-y: auto; }
+.absences-empty { display: grid; min-height: 300px; place-items: center; align-content: center; gap: 1rem; color: #8a99ad; text-align: center; }
+.absences-empty span { display: grid; place-items: center; width: 68px; height: 68px; border: 1px solid #162235; border-radius: 6px; background: #080e1a; color: #64748b; }
+.absences-empty svg { width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.absences-empty p { margin: 0; font-size: 0.9rem; }
+.absence-list { display: grid; gap: 0.75rem; }
+.absence-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 0.85rem; padding: 1rem; border: 1px solid #162235; border-radius: 6px; background: #080e1a; }
+.absence-card-icon { width: 36px; height: 36px; background: rgba(59, 130, 246, 0.14); color: #60a5fa; }
+.absence-card h3, .absence-card p { margin: 0; }
+.absence-card h3 { font-size: 0.92rem; }
+.absence-card p { margin-block-start: 0.3rem; color: #a7b4c6; font-size: 0.82rem; }
+.absence-card span { color: #60a5fa; font-size: 0.78rem; font-weight: 600; }
+.absence-card .absence-description { color: #8a99ad; }
+.absence-form { grid-template-rows: minmax(0, 1fr) auto; min-height: 0; }
+.absence-form-content { display: grid; grid-template-columns: minmax(300px, 0.92fr) minmax(320px, 1.08fr); gap: 1.25rem; min-height: 0; padding: 1.25rem 1.5rem; overflow-y: auto; }
+.absence-calendar { align-self: start; padding: 1rem; border: 1px solid #162235; border-radius: 6px; background: #080e1a; }
+.absence-calendar h3 { margin: 0 0 1rem; font-size: 0.88rem; }
+.calendar-nav { display: grid; grid-template-columns: 36px 1fr 36px; align-items: center; margin-block-end: 0.65rem; text-align: center; }
+.calendar-nav button, .calendar-grid button { border: 0; background: transparent; color: #dce5f1; }
+.calendar-nav button { width: 36px; height: 36px; border-radius: 6px; font-size: 1.4rem; }
+.calendar-nav button:hover { background: #0a1220; }
+.calendar-nav strong { font-size: 0.86rem; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); align-items: center; gap: 2px; }
+.calendar-weekday { padding-block: 0.45rem; color: #718096; font-size: 0.7rem; font-weight: 700; text-align: center; }
+.calendar-grid button { aspect-ratio: 1; min-width: 32px; border-radius: 6px; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.calendar-grid button:hover { background: #0a1220; }
+.calendar-grid button.is-outside { color: #3e4b5e; }
+.calendar-grid button.is-selected { border-radius: 3px; background: #3b82f6; color: #fff; }
+.absence-fields { display: grid; align-content: start; gap: 1rem; }
+.absence-fields > label, .absence-times label { display: grid; gap: 0.42rem; color: #fff; font-size: 0.78rem; font-weight: 600; }
+.absence-fields select, .absence-fields textarea, .absence-times input { width: 100%; border: 1px solid #162235; border-radius: 6px; background: #080e1a; color: #fff; }
+.absence-fields select, .absence-times input { min-height: 42px; }
+.absence-fields textarea { min-height: 88px; resize: vertical; }
+.absence-fields fieldset { display: grid; gap: 0.55rem; margin: 0; padding: 0; border: 0; }
+.absence-fields legend { margin-block-end: 0.55rem; font-size: 0.78rem; font-weight: 600; }
+.absence-radios { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+.absence-radios label { display: flex; align-items: center; gap: 0.4rem; min-height: 42px; padding: 0.6rem 0.8rem; border: 1px solid #162235; border-radius: 6px; background: #080e1a; font-size: 0.78rem; }
+.absence-radios input { accent-color: #3b82f6; }
+.absence-times { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.absence-times input { color-scheme: dark; }
+.absence-period { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.7rem; padding: 0.8rem; border: 1px solid #162235; border-radius: 6px; background: #0a1220; color: #60a5fa; }
+.absence-period strong { color: #fff; font-size: 0.78rem; }
+.absence-period p { margin: 0.25rem 0 0; color: #8a99ad; font-size: 0.76rem; }
+.absences-error { margin: 0.75rem 0 0; padding: 0.7rem 0.8rem; border: 1px solid color-mix(in srgb, var(--danger) 45%, #162235); border-radius: 6px; background: color-mix(in srgb, var(--danger) 8%, #050b14); color: #fca5a5; font-size: 0.8rem; }
+.absences-footer { position: sticky; inset-block-end: 0; display: flex; justify-content: flex-end; gap: 0.65rem; padding: 1rem 1.5rem; border-block-start: 1px solid #162235; background: #050b14; }
+.absences-footer.is-split { justify-content: space-between; }
+.absences-footer .button { min-height: 42px; border-color: #162235; background: transparent; color: #fff; }
+.absences-footer .button-primary { border-color: #3b82f6; background: #3b82f6; }
+.absences-loading { display: grid; gap: 0.75rem; }
+.absences-loading span { height: 84px; border: 1px solid #162235; border-radius: 6px; background: #080e1a; }
 @keyframes schedule-loading { to { background-position: -200% 0; } }
 @media (max-width: 619px) {
   .members-heading { align-items: stretch; }
@@ -1999,6 +2061,11 @@ textarea[aria-invalid="true"] {
   .schedule-dialog-form { max-height: calc(100dvh - 1rem); }
   .schedule-dialog-header, .schedule-dialog-content, .schedule-dialog-footer { padding-inline: 1rem; }
   .schedule-dialog-footer .button { flex: 1; }
+  .absences-dialog { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); }
+  .absences-shell, .absence-form { max-height: calc(100dvh - 1rem); }
+  .absences-header, .absences-content, .absence-form-content, .absences-footer { padding-inline: 1rem; }
+  .absence-form-content { grid-template-columns: 1fr; }
+  .absences-footer .button { flex: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .member-card { transition: none; }
