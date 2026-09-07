@@ -11,7 +11,7 @@ export const SETTINGS_SECTIONS = [
     items: [
       { key: "organizacion", href: "/settings/organizacion", label: "Organización", icon: "building" },
       { key: "plan", href: "/settings/plan", label: "Plan", icon: "card" },
-      { key: "usuarios", href: "/settings/usuarios", label: "Usuarios", icon: "users" },
+      { key: "usuarios", href: "/settings/members", label: "Usuarios", icon: "users" },
       { key: "permisos", href: "/settings/permisos", label: "Permisos", icon: "shield" },
     ],
   },
