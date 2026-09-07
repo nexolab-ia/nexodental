@@ -2031,12 +2031,14 @@ textarea[aria-invalid="true"] {
 .absence-fields textarea { min-height: 88px; resize: vertical; }
 .absence-fields fieldset { display: grid; gap: 0.55rem; margin: 0; padding: 0; border: 0; }
 .absence-fields legend { margin-block-end: 0.55rem; font-size: 0.78rem; font-weight: 600; }
-.absence-radios { display: flex; flex-wrap: wrap; gap: 0.65rem; }
-.absence-radios label { display: flex; align-items: center; gap: 0.4rem; min-height: 42px; padding: 0.6rem 0.8rem; border: 1px solid #162235; border-radius: 6px; background: #080e1a; font-size: 0.78rem; }
+.absence-radios { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; }
+.absence-radios label { display: flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 40px; padding: 0.55rem 0.65rem; border: 1px solid #162235; border-radius: 6px; background: #080e1a; font-size: 0.82rem; text-align: center; cursor: pointer; }
+.absence-radios label.is-selected { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
 .absence-radios input { accent-color: #3b82f6; }
+.absence-radios label:has(input:focus-visible) { outline: 2px solid #60a5fa; outline-offset: 2px; }
 .absence-times { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .absence-times input { color-scheme: dark; }
-.absence-period { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.7rem; padding: 0.8rem; border: 1px solid #162235; border-radius: 6px; background: #0a1220; color: #60a5fa; }
+.absence-period { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.7rem; padding: 0.8rem; border: 1px solid #162235; border-radius: 6px; background: #0a1220; color: #3b82f6; }
 .absence-period strong { color: #fff; font-size: 0.78rem; }
 .absence-period p { margin: 0.25rem 0 0; color: #8a99ad; font-size: 0.76rem; }
 .absences-error { margin: 0.75rem 0 0; padding: 0.7rem 0.8rem; border: 1px solid color-mix(in srgb, var(--danger) 45%, #162235); border-radius: 6px; background: color-mix(in srgb, var(--danger) 8%, #050b14); color: #fca5a5; font-size: 0.8rem; }
