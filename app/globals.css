@@ -1951,8 +1951,8 @@ textarea[aria-invalid="true"] {
 .schedule-dialog-header p { margin-block-start: 0.35rem; color: #8a99ad; font-size: 0.88rem; }
 .schedule-dialog-header .icon-button { flex: 0 0 auto; margin: -0.35rem -0.45rem 0 0; color: #8a99ad; }
 .schedule-dialog-header .icon-button:hover { color: #fff; }
-.schedule-dialog-content { display: grid; min-height: 0; gap: 0.75rem; padding: 1rem 1.5rem 1.25rem; overflow-y: auto; scrollbar-color: #162235 #050b14; scrollbar-width: thin; }
-.schedule-day-card { overflow: hidden; border: 1px solid #162235; border-radius: 6px; background: #080e1a; }
+.schedule-dialog-content { display: grid; grid-auto-rows: max-content; align-content: start; min-height: 0; gap: 0.75rem; padding: 1rem 1.5rem 1.25rem; overflow-y: auto; scrollbar-color: #162235 #050b14; scrollbar-width: thin; }
+.schedule-day-card { overflow: visible; border: 1px solid #162235; border-radius: 6px; background: #080e1a; }
 .schedule-day-card.is-active { border-color: #162235; }
 .schedule-day-header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.75rem; min-height: 70px; padding: 0.8rem 1rem; }
 .schedule-day-badge { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 4px; background: #3b82f6; color: #fff; font-size: 0.875rem; font-weight: 700; }
