@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { MEMBER_ROLE_OPTIONS, type MemberRoleLabel } from "@/features/members/roles";
+import { ScheduleDialog } from "./schedule-dialog";
 
 const WEEKDAYS = [
   { id: "mon", label: "L" },
@@ -47,6 +47,8 @@ export function MembersPage({ members, professionalLimit, professionalUsage }: {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [scheduleMember, setScheduleMember] = useState<Member | null>(null);
+  const scheduleTriggerRef = useRef<HTMLButtonElement | null>(null);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const filteredAllMembers = members.filter((member) => roleFilter === "all" || member.roleLabel === roleFilter);
   const filteredActiveMembers = filteredAllMembers.filter((member) => member.status === "active");
@@ -108,10 +110,10 @@ export function MembersPage({ members, professionalLimit, professionalUsage }: {
     </div>}
 
     <section className="members-list" id="members-all-panel" role="tabpanel" aria-labelledby="members-all-tab" hidden={activeTab !== "all"}>
-      <MembersList members={filteredAllMembers} onDetails={() => setNotice("Disponible pronto")} />
+      <MembersList members={filteredAllMembers} onDetails={() => setNotice("Disponible pronto")} onSchedule={(member, trigger) => { scheduleTriggerRef.current = trigger; setScheduleMember(member); }} />
     </section>
     <section className="members-list" id="members-active-panel" role="tabpanel" aria-labelledby="members-active-tab" hidden={activeTab !== "active"}>
-      <MembersList members={filteredActiveMembers} onDetails={() => setNotice("Disponible pronto")} />
+      <MembersList members={filteredActiveMembers} onDetails={() => setNotice("Disponible pronto")} onSchedule={(member, trigger) => { scheduleTriggerRef.current = trigger; setScheduleMember(member); }} />
     </section>
     <section className="members-list" id="members-invitations-panel" role="tabpanel" aria-labelledby="members-invitations-tab" hidden={activeTab !== "invitations"}>
       {invitations.length ? invitations.map((invitation) => <article className="settings-card invitation-card" key={invitation.id}>
@@ -132,6 +134,11 @@ export function MembersPage({ members, professionalLimit, professionalUsage }: {
       }}
       open={inviteOpen}
     />
+    <ScheduleDialog
+      member={scheduleMember}
+      onClose={() => { setScheduleMember(null); requestAnimationFrame(() => scheduleTriggerRef.current?.focus()); }}
+      onSaved={(message) => { setNotice(message); router.refresh(); }}
+    />
   </main>;
 }
 
@@ -139,11 +146,11 @@ function MemberTabButton({ active, count, id, label, onClick, onKeyDown, tabRef 
   return <button className={active ? "members-tab is-active" : "members-tab"} id={`members-${id}-tab`} type="button" role="tab" aria-selected={active} aria-controls={`members-${id}-panel`} tabIndex={active ? 0 : -1} onClick={() => onClick(id)} onKeyDown={(event) => onKeyDown(event, id)} ref={tabRef}>{label} ({count})</button>;
 }
 
-function MembersList({ members, onDetails }: { members: Member[]; onDetails: () => void }) {
-  return <>{members.length ? members.map((member) => <MemberCard key={member.id} member={member} onDetails={onDetails} />) : <EmptyMembers />}</>;
+function MembersList({ members, onDetails, onSchedule }: { members: Member[]; onDetails: () => void; onSchedule: (member: Member, trigger: HTMLButtonElement) => void }) {
+  return <>{members.length ? members.map((member) => <MemberCard key={member.id} member={member} onDetails={onDetails} onSchedule={onSchedule} />) : <EmptyMembers />}</>;
 }
 
-function MemberCard({ member, onDetails }: { member: Member; onDetails: () => void }) {
+function MemberCard({ member, onDetails, onSchedule }: { member: Member; onDetails: () => void; onSchedule: (member: Member, trigger: HTMLButtonElement) => void }) {
   const initials = member.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
   const hasAvailability = member.weekdays.length > 0;
 
@@ -154,7 +161,7 @@ function MemberCard({ member, onDetails }: { member: Member; onDetails: () => vo
         <div className="member-name-row"><h2>{member.name}</h2>{member.status === "active" && <span className="badge-active"><span />Activo</span>}{member.isOwner && <span className="members-owner-badge">Owner</span>}</div>
       </div>
       <div className="member-card-actions">
-        {member.isPaidRole && hasAvailability ? <Link className="icon-button" href="/agenda" aria-label={`Ver agenda de ${member.name}`} title="Ver agenda"><CalendarIcon /></Link> : <span className="icon-button is-disabled" aria-hidden="true"><CalendarIcon /></span>}
+        <button className="icon-button" type="button" aria-label={`Configurar horarios de ${member.name}`} title="Configurar horarios" onClick={(event) => onSchedule(member, event.currentTarget)}><CalendarIcon /></button>
         <button className="icon-button" type="button" aria-label={`Ver detalle de ${member.name}`} title="Ver detalle" onClick={onDetails}><EyeIcon /></button>
       </div>
     </header>
