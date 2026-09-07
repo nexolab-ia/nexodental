@@ -146,12 +146,15 @@ export function ScheduleDialog({ member, onClose, onSaved }: {
               <button className={active ? "schedule-toggle is-on" : "schedule-toggle"} type="button" role="switch" aria-checked={active} aria-label={`${active ? "Desactivar" : "Activar"} ${details.name}`} onClick={() => toggleDay(day.weekday)} disabled={isSaving}><span /></button>
             </header>
             {active && <div className="schedule-periods">
-              {day.periods.map((period, index) => <fieldset className="schedule-period" key={period.id}>
-                <legend><ClockIcon />Horario {index + 1}</legend>
-                <button className="schedule-remove" type="button" aria-label={`Quitar horario ${index + 1} de ${details.name}`} title="Quitar horario" onClick={() => setDays((current) => current.map((item) => item.weekday === day.weekday ? { ...item, periods: item.periods.filter((candidate) => candidate.id !== period.id) } : item))} disabled={isSaving}><CloseIcon /></button>
+              {day.periods.map((period, index) => <div className="schedule-period" role="group" aria-labelledby={`${period.id}-title`} key={period.id}>
+                <div className="schedule-period-header">
+                  <span className="schedule-period-icon" aria-hidden="true"><ClockIcon /></span>
+                  <span id={`${period.id}-title`}>Horario {index + 1}</span>
+                  <button className="schedule-remove" type="button" aria-label={`Quitar horario ${index + 1} de ${details.name}`} title="Quitar horario" onClick={() => setDays((current) => current.map((item) => item.weekday === day.weekday ? { ...item, periods: item.periods.filter((candidate) => candidate.id !== period.id) } : item))} disabled={isSaving}><CloseIcon /></button>
+                </div>
                 <label>Hora de inicio<input type="time" value={period.startsAt} onChange={(event) => updatePeriod(day.weekday, period.id, "startsAt", event.target.value)} disabled={isSaving} required /></label>
                 <label>Hora de fin<input type="time" value={period.endsAt} onChange={(event) => updatePeriod(day.weekday, period.id, "endsAt", event.target.value)} disabled={isSaving} required /></label>
-              </fieldset>)}
+              </div>)}
               <button className="schedule-add-period" type="button" onClick={() => setDays((current) => current.map((item) => item.weekday === day.weekday ? { ...item, periods: [...item.periods, newPeriod()] } : item))} disabled={isSaving}>+ Agregar Horario</button>
             </div>}
           </section>;
