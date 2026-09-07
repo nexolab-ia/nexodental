@@ -24,3 +24,4 @@ CREATE POLICY absences_read_tenant ON absences FOR SELECT USING (organization_id
 CREATE POLICY absences_write_manage ON absences FOR ALL
   USING (organization_id = current_setting('app.organization_id', true)::uuid AND current_setting('app.role', true) IN ('organization_admin','independent_owner'))
   WITH CHECK (organization_id = current_setting('app.organization_id', true)::uuid AND current_setting('app.role', true) IN ('organization_admin','independent_owner'));
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE absences TO nexodent_app;
