@@ -1,92 +1,86 @@
-# DESIGN.md — Identidad visual NexoDent
+# DESIGN.md — NexoDental (sistema de diseño de producto)
 
-Diseño moderno, limpio, tipo fintech/SaaS premium. EXPLÍCITAMENTE distinto a CIMAOS (look clínico tradicional) y Dentalink (legacy). No debe "verse como ya" — nada de verdes clínicos, azules médicos genéricos ni plantillas de software médico.
+> Reglas obligatorias de diseño para TODO trabajo en este repo. Los briefs (BRIEF-CODEX-N) DEBEN cumplir esto. Basado en la skill taste-skill (design-taste-frontend) aplicada a product UI / dashboard clínico.
 
-> ⚠️ Complemento normativo: **`UX-PRINCIPIOS.md`** (mobile-first, presupuesto de clics, ledger claro, estados texto+color, checklist de verificación). Todo brief de UI DEBE cumplir ambos documentos y citar la "Verificación UX" de UX-PRINCIPIOS.md. Research que los sustenta: `docs/research-ux/` (2026-09-03).
+## 1. Design read (contexto fijo)
 
-## Modo de diseño (Impeccable)
+**Producto:** dashboard SaaS clínico dental (product UI, no landing page).
+**Audiencia:** clínicas dentales chilenas, uso diario operativo, pantalla de escritorio + mobile.
+**Lenguaje:** dark-tech sobrio, trust-first (datos de salud = contexto regulado, Ley 21.719).
+**Nota taste-skill:** las reglas de landing (hero, marquee, bento, GSAP) NO aplican a este repo. Aplican: consistencia sistémica, tipografía, estados completos, anti-slop de datos, accesibilidad.
 
-- **Mode**: Operate (dashboard SaaS) + Persuade en landing pública
-- **Vibe**: "Fintech de salud" — oscuro elegante + acento vibrante, aire premium y confiable
+## 2. Tokens (mapeo a globals.css `:root`)
 
-## Paleta (CSS custom properties)
+Solo usar tokens CSS existentes. NO inventar colores fuera de esta paleta:
 
-```css
-:root {
-  --bg: #0B1120;            /* azul-noche profundo (fondos oscuros) */
-  --surface: #111A2E;       /* tarjetas / paneles */
-  --surface-2: #1A2740;     /* elevado */
-  --ink: #F1F5F9;           /* texto principal sobre oscuro */
-  --muted: #94A3B8;         /* texto secundario */
-  --accent: #22D3EE;        /* cian eléctrico (firma NexoDent) */
-  --accent-strong: #06B6D4;
-  --success: #34D399;
-  --warning: #FBBF24;
-  --danger: #F87171;
-  --border: #243249;
-  --radius: 14px;
-  --shadow: 0 8px 30px rgba(2,6,23,.5);
-}
-```
+| Token | Valor | Uso |
+|---|---|---|
+| `--bg` | `#0b1120` | fondo general |
+| `--surface` | `#111a2e` | tarjetas/contenedores |
+| `--surface-2` | `#1a2740` | hover/elevación |
+| `--ink` | `#f1f5f9` | texto primario |
+| `--muted` | `#94a3b8` | texto secundario |
+| `--accent` | `#22d3ee` | **ÚNICO acento de acción** |
+| `--accent-strong` | `#06b6d4` | hover del acento |
+| `--success` | `#34d399` | SOLO semántico de dinero/positivo |
+| `--warning` | `#fbbf24` | SOLO avisos/estado pendiente |
+| `--danger` | `#f87171` | SOLO errores/destructivo |
+| `--border` | `#243249` | bordes |
+| `--radius` | `14px` | tarjetas |
 
-- **Landing pública**: puede usar fondo claro (#F8FAFC) con las mismas tarjetas oscuras para contraste premium; la APP (dashboard) va 100% dark.
-- **Acento único**: cian eléctrico para acciones/CTA/estado activo. Verde solo para éxito/pago. Nada más.
-- Contraste AA: ink sobre bg (15:1), cian sobre bg (7:1), texto sobre accent → usar `--bg` sobre cian.
+### Reglas de color (obligatorias)
+1. **UN solo acento**: `--accent` (#22d3ee) para TODA acción/CTA/link/tab activo/avatar. Prohibido usar verde, azul-añil o cian-otro como acento de acción.
+2. **Semántica estricta**: verde (`--success`) únicamente para valores monetarios positivos y estados OK; amarillo para pendientes/avisos; rojo para errores/destructivo. No usar verde ni amarillo como decoración.
+3. **Sin data fantasma**: un gráfico/barra/progreso con valor 0 NO dibuja barras ni segmentos. Si el dato es 0 o vacío, mostrar estado vacío, no visualización decorativa (aplica a gráficos, barras de progreso, sparklines).
+4. **Formato de fecha en es-CL** en toda la UI (dd/mm/aaaa o texto "lunes, 7 de septiembre de 2026"). Prohibido MM/DD/YYYY americano.
+5. Light mode (`[data-theme="light"]`): mantener jerarquía equivalente (acento hue ajustado, misma semántica).
 
-## Tipografía
+## 3. Tipografía
 
-- **Display (títulos/H1/hero/landing)**: sans geométrica premium — **"Space Grotesk"** (Google Fonts, 500/700) — se ve moderna, NO es Inter ni Roboto.
-- **UI (body/botones/dashboard)**: sans legible — **"Inter"** (400/500/600) para el sistema (el detector lo marcará como overused-font — falso positivo aceptado: en dashboard la legibilidad manda; el display Space Grotesk da la personalidad).
-- **Mono (datos clínicos/códigos/odontograma)**: "JetBrains Mono" solo para IDs, códigos de prestación y tablas densas.
-- Escala: hero 44-56px, H2 28px, H3 20px, body 15px, caption 12.5px, mono 13px.
-- Letter-spacing: títulos 0.3-0.5px; botones 0.4px; labels uppercase 0.6px en el sistema.
+- Display/encabezados: `var(--font-display)` (Space Grotesk).
+- UI/body/labels: `var(--font-ui)` (Inter).
+- Números/IDs/fechas tabulares donde aplique: `var(--font-mono)` (JetBrains Mono) o `font-variant-numeric: tabular-nums`.
+- Escala: H1 ~30px bold display; tarjetas 15-16px; labels/copy auxiliar 12-13px `--muted`. Mantener la escala existente; no inflar títulos.
+- Tuteo, español chileno. Sin em-dash (—) en copy visible; usar punto/comma/paréntesis (regla taste-skill, se aplica a todo texto visible).
 
-## Layout y componentes
+## 4. Layout y componentes
 
-### Landing pública (/)
-- **Nav**: logo "NexoDent" con marca cian (icono de diente estilizado geométrico — SVG, no emoji), links (Funcionalidades, Precios, Blog), CTA "Probar gratis". Fondo oscuro translúcido blur, sticky.
-- **Hero**: fondo azul-noche con **grid pattern sutil** + glow radial cian; headline Space Grotesk "El sistema que ordena y hace crecer tu clínica"; subtexto; CTA cian "Empezar 7 días gratis" + secundario "Ver demo". Mockup del dashboard enmarcado (tarjeta oscura con esquinas de agenda/odontograma) a la derecha.
-- **Barra de confianza**: "Sin tarjeta · Cancela cuando quieras · +500 clínicas · 5.0 en tiendas".
-- **Sección problema/solución**: "El problema real" (texto) vs "NexoDent lo ordena" (visual) — copy tipo CIMAOS pero sin copiar su texto.
-- **Módulos**: grilla 6 tarjetas oscuras (Agenda, Ficha, Presupuestos, Cobros, Reportes IA, Recordatorios) con ícono SVG de línea fina y hover con glow cian.
-- **IA proactiva (diferenciador)**: sección destacada mostrando 3 "avisos" estilo notificación: tarjeta oscura con borde cian "Los martes 15:00-18:00 quedan vacíos → Sugerencia: ofrece ese horario..." — mostrar la IA funcionando, no describirla.
-- **Precios**: tabla transparente por profesional con toggle mensual/semestral/anual, destacar el plan Core.
-- **Testimonios + CTA final + Footer** oscuro con columnas.
+- Radios: `--radius` (14px) en tarjetas/contenedores; inputs/botones 6-10px; pills 999px. Sistema documentado, no mezclar a la vez.
+- Cards: usar cuando la elevación comunica jerarquía; si se agrupa contenido plano, usar `border-t`/espacio, no tarjetas en tarjetas.
+- Botones: altura mínima 42-44px; labels de UNA línea en desktop (sin wrap); contraste texto/fondo WCAG AA (4.5:1). Estados completos: default, hover, `:active` (scale .98), disabled, loading (skeleton).
+- Estados vacíos: SIEMPRE con icono + texto + **CTA accionable** ("Crear primera cita", "Registrar pago", "Invitar usuario").
+- Inputs: label ARRIBA del campo, borde `--border` visible (nunca input invisible sobre la tarjeta), error debajo del campo, placeholder legible, focus ring `--accent`.
+- Diálogos: patrón `<dialog>` nativo + `showModal`, backdrop oscurecido, sticky footer. Ya estándar en el repo (schedule/absences/members) — mantener.
+- Densidad: dashboard clínico real = usar el espacio; evitar 85% de pantalla vacía en vistas con datos (agenda, reportes). Si no hay contenido para llenar, proporcionar estados vacíos ricos, no vacío plano.
 
-### Dashboard (app, tras login — dark)
-- **Navegación principal: menú HORIZONTAL en la parte superior** (decisión Bryan 2026-09-03): items `Dashboard` · `Calendario` · `Reportes` · `Configuración`. Íconos SVG de línea + texto; item activo = cian con píldora/subrayado; sticky bajo la topbar. NO usar sidebar lateral.
-- En <768px los MISMOS 4 items se convierten en bottom tab bar (`Dashboard` · `Calendario` · `Reportes` · `Configuración`) — ver UX-PRINCIPIOS.md P1.
-- Módulos secundarios (Pacientes, Presupuestos, Cobros, Migración) conservan sus rutas y se acceden desde el contexto: Dashboard con accesos rápidos, ficha del paciente desde la cita, Migración desde Configuración. No son items del menú principal.
-- **Topbar**: buscador global, avisos IA (campana con badge), perfil (si el shell actual ya tiene topbar separada, el menú horizontal va debajo, sticky; si no, buscador/perfil conviven a la derecha del menú — elegir la opción menos invasiva).
-- **Agenda**: vista semana/día, grid por profesional/box, citas como chips de color por estado (confirmada/pendiente/cancelada), drag & drop, click para nueva cita. Panel derecho con detalle de la cita. En tablet vertical: hit-areas amplios, detalle en bottom-sheet. Estados SIEMPRE chip texto+color (no solo color).
-- **Ficha paciente**: header con datos + estado de cuenta, tabs (Evoluciones, Odontograma, Documentos, Cobros). Odontograma SVG interactivo por pieza.
-- **Presupuestos**: lista + editor con búsqueda de prestaciones, total, estado; botón "compartir link público".
-- **Cobros**: tabla de abonos por paciente, saldo, botón registrar pago, cuenta corriente. Estilo "accounting real": separar visualmente pago paciente vs aseguradora; saldo trazable a la línea (UX-PRINCIPIOS.md P3).
-- **Reportes IA**: KPIs (recaudación, deuda, producción por profesional) con gráficos simples (SVG/barras) + feed de "Avisos de tu clínica" con sugerencias y botones "Aplicar" / "Ver detalle".
-- **Modo claro**: opcional en settings; por defecto dark. Ambos con contraste AA desde el día 1.
+## 5. Métricas y datos
 
-## Anti-patrones (prohibido)
+- Números con formato CLP (`$ 0`, `$12.500`), separador de miles y `.` decimal donde aplique.
+- KPIs con valores reales; si el dato viene vacío, mostrar 0 o "—" según convención de la tarjeta y NUNCA inventar valores visuales (barras/gráficos) para el 0.
+- Leyenda textual bajo métricas con referencia clara; evitar texto repetido "Sin referencia" en toda columna (variar o eliminar).
 
-- ❌ Nada de verde clínico / azul médico genérico / blanco hospitalario en la app
-- ❌ Sin gradientes chillones (solo glow cian sutil en hero)
-- ❌ Sin emojis, sin clip-art, sin imágenes stock obvias (íconos SVG propios)
-- ❌ Sin Inter como display (solo body); display = Space Grotesk
-- ❌ Sin tablas de datos sin mono para códigos/IDs
-- ❌ Sin más de 2-3 fuentes (Space Grotesk + Inter + JetBrains Mono opcional)
-- ❌ Sin formularios sin estados de error inline y focus visible
-- ❌ No copiar el copy de CIMAOS textualmente (parafrasear el concepto, no las frases)
-- ❌ Sin estados de cita solo con color (siempre chip texto+color) — ver UX-PRINCIPIOS.md P4
-- ❌ Sin flujos de >2 clics en tareas diarias (agenda, pago, asistencia) — ver UX-PRINCIPIOS.md P2
-- ❌ Sin navegación móvil colapsada: <768px = bottom tab bar, funcionalidad completa (no "solo lectura") — ver UX-PRINCIPIOS.md P1
-- ❌ Sin etiquetas financieras inventadas ni líneas de ledger confusas — ver UX-PRINCIPIOS.md P3
+## 6. Anti-slop (prohibiciones concretas)
 
-## Microcopy de conversión
+- Nada de gradientes morados/neón, glow genérico, glassmorphism decorativo en dashboard.
+- Nada de interminables micro-animaciones; micro-motion SOLO funcional (feedback táctil `:active`, skeletons en carga, transición de diálogos). Respetar `prefers-reduced-motion`.
+- Sin emoji en UI; iconos inline SVG del set existente del repo (mismo stroke, ~1.8).
+- Sin copy vago tipo "Disponible pronto" en funcionalidad real; reemplazar por la función o quitar el control.
+- Sin datos de demostración confundidos con reales en producción (los "dato ficticio" de la agenda demo son aceptables SOLO con la marca visible de demo).
 
-- CTA primario: "Empezar 7 días gratis", "Probar NexoDent", "Ver demo"
-- Trust: "Sin tarjeta · Cancela cuando quieras", "Migración asistida desde CIMAOS/Dentalink", "Soporte por WhatsApp real"
-- IA: "Avisos de tu clínica", "Sugerencia", "Aplicar" / "Ver detalle"
-- Onboarding: "Semana 1: Ordena · Mes 1: Mide · Después: Crece"
+## 7. Verificación de briefs (checklist que el gatekeeper aplica)
 
-## Logo
+- [ ] Un solo acento (#22d3ee) en acciones; verde solo monetario/OK.
+- [ ] Sin barras/gráficos con valor 0 (estado vacío en su lugar).
+- [ ] Fechas en es-CL.
+- [ ] Estados vacíos con CTA.
+- [ ] Inputs con borde visible y label arriba.
+- [ ] Botones 44px, una línea, contraste AA.
+- [ ] Tuteo, sin em-dash.
+- [ ] `npm run build` + tsc OK.
+- [ ] Validación visual en Chromium real contra producción antes de cerrar.
 
-- Wordmark "NexoDent" en Space Grotesk bold, con el icono de diente geométrico SVG en cian (hexágono/diente estilizado minimalista). Punto cian sobre la "o" o como acento del icono.
+## 8. Referencias
+
+- Tokens: `app/globals.css` (`:root`, `[data-theme="light"]`).
+- Patrón de diálogo: `components/settings/absences-dialog.tsx`, `schedule-dialog.tsx`.
+- Skill de origen: `design-taste-frontend` (taste-skill v2), aplicada con la sección "OUT OF SCOPE" de la skill (product UI, no landing).

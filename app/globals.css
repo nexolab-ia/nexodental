@@ -779,7 +779,17 @@ textarea[aria-invalid="true"] {
   background: var(--surface-2);
 }
 .date-nav button {
+  min-height: 2.5rem;
   padding: 0.55rem 0.7rem;
+}
+.date-nav .button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+}
+.dashboard-page button[type="submit"]:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
 }
 .scope-row {
   justify-content: space-between;
@@ -898,6 +908,7 @@ textarea[aria-invalid="true"] {
   color: var(--muted);
 }
 .agenda-actions button {
+  min-height: 2.5rem;
   padding: 0.4rem 0.55rem;
   font-size: 12px;
 }
@@ -984,6 +995,10 @@ textarea[aria-invalid="true"] {
   fill: none;
   stroke: currentColor;
   stroke-width: 1.5;
+}
+.state-note-compact {
+  min-height: 5rem;
+  margin-block: 0.5rem;
 }
 .sparkline {
   width: 100%;
