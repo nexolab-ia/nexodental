@@ -49,12 +49,13 @@ export async function createPatient(input: CreatePatientInput): Promise<{ ok: tr
     `)[0];
     if (!patient) throw new Error("No pudimos crear el paciente. Intenta nuevamente.");
 
+    const afterJson = JSON.stringify({ firstName, lastName, rut, phone, email, consentGranted });
     await tx`
       INSERT INTO audit_logs
         (organization_id, actor_membership_id, action, entity, entity_id, after, reason)
       VALUES
         (${actor.organizationId}, ${actor.membershipId}, 'patient.created', 'patient', ${patient.id},
-          ${tx.json({ firstName, lastName, rut, phone, email, consentGranted })}, 'agenda.quick_patient_create')
+          ${afterJson}::jsonb, 'agenda.quick_patient_create')
     `;
 
     return { ok: true, id: patient.id, name: `${firstName} ${lastName}` };
