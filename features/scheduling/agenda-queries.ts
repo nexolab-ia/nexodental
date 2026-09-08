@@ -9,7 +9,7 @@ export type AgendaAppointment = {
   patientContact: string | null; startsAt: string; endsAt: string; notes: string | null;
 };
 
-type AppointmentRow = Omit<AgendaAppointment, "startsAt" | "endsAt"> & { startsAt: Date; endsAt: Date };
+type AppointmentRow = Omit<AgendaAppointment, "startsAt" | "endsAt"> & { startsAt: string; endsAt: string };
 
 export async function loadAgendaAppointments(actor: TenantContext, startsAtIso: string, endsAtIso: string): Promise<AgendaAppointment[]> {
   const startsAt = new Date(startsAtIso);
@@ -22,12 +22,16 @@ export async function loadAgendaAppointments(actor: TenantContext, startsAtIso: 
     SELECT id, site_id AS "siteId", professional_membership_id AS "professionalMembershipId",
       box_id AS "boxId", kind::text AS kind, status::text AS status,
       patient_name AS "patientName", patient_contact AS "patientContact",
-      starts_at AS "startsAt", ends_at AS "endsAt", notes
+      starts_at::text AS "startsAt", ends_at::text AS "endsAt", notes
     FROM appointments
     WHERE organization_id = ${actor.organizationId} AND status <> 'cancelled'
       AND starts_at >= ${startsAtIso}::timestamptz AND starts_at < ${endsAtIso}::timestamptz
     ORDER BY starts_at ASC
   `);
 
-  return rows.map((row) => ({ ...row, startsAt: row.startsAt.toISOString(), endsAt: row.endsAt.toISOString() }));
+  return rows.map((row) => ({
+    ...row,
+    startsAt: new Date(row.startsAt).toISOString(),
+    endsAt: new Date(row.endsAt).toISOString(),
+  }));
 }
