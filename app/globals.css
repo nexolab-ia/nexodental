@@ -1309,6 +1309,21 @@ textarea[aria-invalid="true"] {
 .perm-switch input:focus-visible + .perm-switch-track { outline: 2px solid var(--accent); outline-offset: 3px; }
 .permissions-actions .button { min-height: 44px; white-space: nowrap; }
 
+.calendar-settings { display: grid; gap: 1rem; width: 100%; padding: 0; }
+.calendar-settings-form { display: grid; gap: 1rem; }
+.calendar-settings-card { gap: 0; }
+.calendar-settings-card > header { padding-block-end: 1rem; }
+.calendar-settings-heading { display: flex; align-items: center; gap: 0.55rem; }
+.calendar-settings-heading svg { width: 20px; height: 20px; color: var(--accent); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.calendar-setting-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(11rem, 13rem); align-items: center; gap: 1rem; min-height: 68px; padding: 0.8rem 0; border-block-start: 1px solid var(--border); }
+.calendar-setting-copy { display: grid; gap: 0.25rem; min-width: 0; }
+.calendar-setting-title { color: var(--ink); font-size: 0.92rem; font-weight: 700; line-height: 1.35; }
+.calendar-setting-description { max-width: 75ch; color: var(--muted); font-size: 0.8rem; line-height: 1.45; }
+.calendar-duration-select { min-height: 44px; border-color: var(--border); background: var(--surface); color: var(--ink); }
+.calendar-duration-select:focus-visible { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 2px; }
+.calendar-settings-actions { padding-block-start: 1rem; }
+.calendar-settings-actions .button { min-height: 44px; white-space: nowrap; }
+
 @media (prefers-reduced-motion: reduce) {
   .perm-switch-track,
   .perm-switch-track > span { transition: none; }
@@ -1321,6 +1336,7 @@ textarea[aria-invalid="true"] {
 @media (max-width: 680px) {
   .organization-fields { grid-template-columns: 1fr; }
   .organization-logo-row, .organization-logo-row .logo-picker { flex-direction: column; align-items: flex-start; }
+  .calendar-setting-row { grid-template-columns: 1fr; align-items: start; }
 }
 
 @media (max-width: 767px) {

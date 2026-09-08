@@ -19,7 +19,8 @@ export const SETTINGS_SECTIONS = [
     key: "agenda",
     label: "Agenda",
     items: [
-      { key: "calendario", href: "/agenda", label: "Calendario", icon: "calendar" },
+      { key: "agenda", href: "/agenda", label: "Agenda", icon: "calendar" },
+      { key: "calendario", href: "/settings/calendario", label: "Calendario", icon: "clock" },
       { key: "bloqueos", href: "/settings/bloqueos", label: "Bloqueos", icon: "lock" },
       { key: "agenda-online", href: "/settings/agenda-online", label: "Agenda Online", icon: "globe" },
       { key: "notificaciones", href: "/settings/notifications", label: "Notificaciones", icon: "bell" },
