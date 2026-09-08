@@ -44,7 +44,7 @@ export async function createPatient(input: CreatePatientInput): Promise<{ ok: tr
         (organization_id, first_name, last_name, rut, phone, email, consent_granted, consented_at)
       VALUES
         (${actor.organizationId}, ${firstName}, ${lastName}, ${rut}, ${phone}, ${email},
-          ${consentGranted}, ${consentGranted ? tx`now()` : null})
+          ${consentGranted}, CASE WHEN ${consentGranted} THEN now() ELSE NULL END)
       RETURNING id
     `)[0];
     if (!patient) throw new Error("No pudimos crear el paciente. Intenta nuevamente.");
