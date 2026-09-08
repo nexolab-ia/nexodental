@@ -2215,6 +2215,15 @@ textarea[aria-invalid="true"] {
 .agenda-appointment-dialog-content input:focus-visible, .agenda-appointment-dialog-content select:focus-visible, .agenda-appointment-dialog-content textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .agenda-patient-field { position: relative; }
 .agenda-patient-field small { color: var(--muted); font-size: 0.72rem; font-weight: 400; }
+.agenda-patient-control { display: grid; gap: 0.4rem; }
+.agenda-patient-control > small { color: var(--muted); font-size: 0.72rem; }
+.agenda-patient-label-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; color: var(--ink); font-size: 0.8rem; font-weight: 700; }
+.agenda-create-patient-button { display: inline-flex; min-height: 40px; align-items: center; gap: 0.4rem; padding: 0.4rem 0.7rem; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--accent); font-weight: 700; white-space: nowrap; }
+.agenda-create-patient-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.agenda-create-patient-button:hover { background: var(--surface-2); }
+.agenda-create-patient-button:active { transform: scale(0.98); }
+.agenda-create-patient-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.agenda-create-patient-button:disabled { cursor: not-allowed; opacity: 0.55; }
 .agenda-patient-suggestions { position: absolute; z-index: 5; inset: calc(100% - 1.5rem) 0 auto; max-height: 12rem; margin: 0; overflow-y: auto; padding: 0.25rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); box-shadow: var(--shadow); list-style: none; }
 .agenda-patient-suggestions button { display: grid; width: 100%; min-height: 42px; gap: 0.1rem; padding: 0.5rem 0.6rem; border: 0; border-radius: 6px; background: transparent; color: var(--ink); text-align: start; }
 .agenda-patient-suggestions button:hover, .agenda-patient-suggestions button:focus-visible { background: color-mix(in srgb, var(--accent) 11%, var(--surface-2)); }
@@ -2236,12 +2245,35 @@ textarea[aria-invalid="true"] {
 .agenda-dialog-error--wide { grid-column: 1 / -1; }
 .agenda-time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .agenda-dialog-error { margin: 0; padding: 0.7rem; border: 1px solid color-mix(in srgb, var(--danger) 50%, var(--border)); border-radius: 8px; color: var(--danger); font-size: 0.8rem; }
+.agenda-dialog-notice { margin: 0; padding: 0.7rem; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); border-radius: 8px; color: var(--accent); font-size: 0.8rem; }
 .agenda-appointment-dialog-footer { position: sticky; inset-block-end: 0; display: flex; justify-content: flex-end; gap: 0.65rem; padding: 1rem 1.25rem; border-block-start: 1px solid var(--border); background: var(--surface); }
 .agenda-appointment-dialog-footer .button { min-height: 44px; }
+.create-patient-dialog { width: min(38rem, calc(100vw - 2rem)); max-height: min(44rem, calc(100dvh - 2rem)); margin: auto; padding: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.create-patient-dialog::backdrop { background: rgb(2 6 23 / 78%); }
+.create-patient-dialog form { display: flex; max-height: min(44rem, calc(100dvh - 2rem)); flex-direction: column; }
+.create-patient-dialog header, .create-patient-dialog footer { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; }
+.create-patient-dialog header { border-block-end: 1px solid var(--border); }
+.create-patient-dialog header h2, .create-patient-dialog header p { margin: 0; }
+.create-patient-dialog header h2 { font: 700 1.1rem var(--font-display); outline: none; }
+.create-patient-dialog header p { margin-block-start: 0.3rem; color: var(--muted); font-size: 0.8rem; }
+.create-patient-dialog header .icon-button { display: grid; width: 44px; min-height: 44px; flex: none; place-items: center; }
+.create-patient-dialog header .icon-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.create-patient-dialog-body { display: grid; min-height: 0; gap: 1rem; overflow-y: auto; padding: 1.25rem; }
+.agenda-create-patient-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.agenda-create-patient-grid label { display: grid; gap: 0.4rem; font-size: 0.8rem; font-weight: 700; }
+.agenda-create-patient-grid input { width: 100%; min-height: 44px; padding: 0.6rem 0.7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); }
+.agenda-create-patient-grid input:focus-visible, .agenda-consent-field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.agenda-create-patient-email { grid-column: 1 / -1; }
+.agenda-consent-field { display: flex; align-items: flex-start; gap: 0.7rem; color: var(--ink); font-size: 0.8rem; }
+.agenda-consent-field input { width: 18px; height: 18px; flex: none; margin-block-start: 0.1rem; accent-color: var(--accent); }
+.agenda-consent-field span { display: grid; gap: 0.2rem; color: var(--muted); font-weight: 400; }
+.agenda-consent-field strong { color: var(--ink); }
+.create-patient-dialog footer { position: sticky; inset-block-end: 0; justify-content: flex-end; border-block-start: 1px solid var(--border); background: var(--surface); }
+.create-patient-dialog footer .button { min-height: 44px; }
 @media (max-width: 1050px) { .agenda-heading { align-items: stretch; flex-direction: column; } .agenda-controls { justify-content: flex-start; } }
 @media (max-width: 720px) { .agenda-dialog-body { grid-template-columns: 1fr; } .agenda-dialog-summary { position: static; } }
-@media (max-width: 600px) { .agenda-controls { display: grid; grid-template-columns: 1fr auto; align-items: end; } .agenda-control-group, .agenda-selector { min-width: 0; } .agenda-segmented { overflow-x: auto; } .agenda-heading > div:first-child, .agenda-controls > .agenda-segmented { grid-column: 1 / -1; } .agenda-navigation { justify-self: end; } .agenda-empty { align-items: flex-start; flex-wrap: wrap; } .agenda-empty button { width: 100%; margin-inline-start: 0; } .agenda-appointment-dialog { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); } .agenda-appointment-form { max-height: calc(100dvh - 1rem); } .agenda-appointment-dialog-header, .agenda-appointment-dialog-content, .agenda-appointment-dialog-footer { padding-inline: 1rem; } .agenda-appointment-dialog-footer .button { flex: 1; } .agenda-time-fields { grid-template-columns: 1fr; } }
-@media (prefers-reduced-motion: reduce) { .agenda-slot-plus, .agenda-appointment-dialog *, .session-type-dialog * { transition: none !important; } }
+@media (max-width: 600px) { .agenda-controls { display: grid; grid-template-columns: 1fr auto; align-items: end; } .agenda-control-group, .agenda-selector { min-width: 0; } .agenda-segmented { overflow-x: auto; } .agenda-heading > div:first-child, .agenda-controls > .agenda-segmented { grid-column: 1 / -1; } .agenda-navigation { justify-self: end; } .agenda-empty { align-items: flex-start; flex-wrap: wrap; } .agenda-empty button { width: 100%; margin-inline-start: 0; } .agenda-appointment-dialog, .create-patient-dialog { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); } .agenda-appointment-form, .create-patient-dialog form { max-height: calc(100dvh - 1rem); } .agenda-appointment-dialog-header, .agenda-appointment-dialog-content, .agenda-appointment-dialog-footer, .create-patient-dialog header, .create-patient-dialog-body, .create-patient-dialog footer { padding-inline: 1rem; } .agenda-appointment-dialog-footer .button, .create-patient-dialog footer .button { flex: 1; } .agenda-time-fields, .agenda-create-patient-grid { grid-template-columns: 1fr; } .agenda-create-patient-email { grid-column: auto; } }
+@media (prefers-reduced-motion: reduce) { .agenda-slot-plus, .agenda-appointment-dialog *, .create-patient-dialog *, .session-type-dialog * { transition: none !important; } }
 
 .session-types-settings { display: grid; gap: 1rem; }
 .session-types-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }

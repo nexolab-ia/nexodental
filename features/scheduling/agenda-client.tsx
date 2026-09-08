@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition, type CSSProperties, type FormEvent } from "react";
 import { getAgendaAppointments, type AgendaAppointment } from "./agenda-actions";
 import { createAgendaAppointment } from "./agenda-create-actions";
+import { createPatient } from "@/features/patients/actions";
 import { addLocalDays, localTime, santiagoDateKey, santiagoDateKeyToUtc, santiagoLocalToUtc, startOfLocalWeek } from "./domain";
 
 type View = "day" | "week";
@@ -24,6 +25,7 @@ function Icon({ name }: { name: "calendar" | "chevron-left" | "chevron-right" | 
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d={name === "chevron-left" ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6"} /></svg>;
 }
 function CloseIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>; }
+function CreatePatientIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c.5-3.3 2.3-5 5.5-5 2.1 0 3.6.7 4.5 2M18 8v6M15 11h6" /></svg>; }
 function weekdayIndex(key: string): number { const [y, m, d] = key.split("-").map(Number); const value = new Date(Date.UTC(y, m - 1, d, 12)).getUTCDay(); return value === 0 ? 6 : value - 1; }
 function dateKeyAtSantiago(iso: string): string { return santiagoDateKey(new Date(iso)); }
 function minutesAtSantiago(iso: string): number { const [hour, minute] = localTime(new Date(iso)).split(":").map(Number); return hour * 60 + minute; }
@@ -112,18 +114,30 @@ function durationLabel(minutes: number): string {
 }
 
 function AgendaCreateDialog({ createAt, professional, boxes, patients, sessionTypes, blockDuration, onClose, onCreated }: { createAt: CreateAt; professional: Professional; boxes: Box[]; patients: Patient[]; sessionTypes: SessionType[]; blockDuration: number; onClose: () => void; onCreated: () => Promise<void> }) {
-  const dialogRef = useRef<HTMLDialogElement>(null); const titleRef = useRef<HTMLHeadingElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null); const titleRef = useRef<HTMLHeadingElement>(null); const patientDialogRef = useRef<HTMLDialogElement>(null); const patientTitleRef = useRef<HTMLHeadingElement>(null);
   const defaultType = sessionTypes.find((item) => item.isDefault) ?? null;
   const initialDuration = defaultType?.durationMinutes ?? (durationGroups.flatMap((group) => group.values).includes(blockDuration) ? blockDuration : 30);
-  const [patientName, setPatientName] = useState(""); const [patientId, setPatientId] = useState<string | null>(null); const [patientContact, setPatientContact] = useState<string | null>(null); const [boxId, setBoxId] = useState(""); const [sessionTypeId, setSessionTypeId] = useState(defaultType?.id ?? ""); const [duration, setDuration] = useState(initialDuration); const [notes, setNotes] = useState(""); const [error, setError] = useState(""); const [isCreating, setIsCreating] = useState(false);
+  const [patientName, setPatientName] = useState(""); const [patientId, setPatientId] = useState<string | null>(null); const [patientContact, setPatientContact] = useState<string | null>(null); const [localPatients, setLocalPatients] = useState(patients); const [boxId, setBoxId] = useState(""); const [sessionTypeId, setSessionTypeId] = useState(defaultType?.id ?? ""); const [duration, setDuration] = useState(initialDuration); const [notes, setNotes] = useState(""); const [error, setError] = useState(""); const [notice, setNotice] = useState(""); const [isCreating, setIsCreating] = useState(false); const [isCreatingPatient, setIsCreatingPatient] = useState(false); const [patientError, setPatientError] = useState("");
   const startsAt = timeFromMinutes(createAt.startMinutes); const endsAt = timeFromMinutes(createAt.startMinutes + duration);
   const selectedBox = boxes.find((item) => item.id === boxId); const selectedType = sessionTypes.find((item) => item.id === sessionTypeId);
-  const matches = useMemo(() => { const query = patientName.trim().toLocaleLowerCase("es-CL"); if (!query) return []; return patients.filter((patient) => `${patient.name} ${patient.email ?? ""}`.toLocaleLowerCase("es-CL").includes(query)).slice(0, 6); }, [patientName, patients]);
+  const matches = useMemo(() => { const query = patientName.trim().toLocaleLowerCase("es-CL"); if (!query) return []; return localPatients.filter((patient) => `${patient.name} ${patient.email ?? ""}`.toLocaleLowerCase("es-CL").includes(query)).slice(0, 6); }, [patientName, localPatients]);
 
   useEffect(() => { const dialog = dialogRef.current; if (!dialog) return; if (!dialog.open) dialog.showModal(); requestAnimationFrame(() => titleRef.current?.focus()); }, []);
   function choosePatient(patient: Patient) { setPatientName(patient.name); setPatientId(patient.id); setPatientContact(patient.phone ?? patient.email); }
-  function changePatientName(value: string) { setPatientName(value); const exact = patients.find((patient) => patient.name.toLocaleLowerCase("es-CL") === value.trim().toLocaleLowerCase("es-CL")); if (exact) choosePatient(exact); else { setPatientId(null); setPatientContact(null); } }
+  function changePatientName(value: string) { setPatientName(value); setNotice(""); const exact = localPatients.find((patient) => patient.name.toLocaleLowerCase("es-CL") === value.trim().toLocaleLowerCase("es-CL")); if (exact) choosePatient(exact); else { setPatientId(null); setPatientContact(null); } }
   function changeSessionType(id: string) { setSessionTypeId(id); const type = sessionTypes.find((item) => item.id === id); if (type) setDuration(type.durationMinutes); }
+  function openPatientDialog() { setPatientError(""); const dialog = patientDialogRef.current; if (dialog && !dialog.open) { dialog.showModal(); requestAnimationFrame(() => patientTitleRef.current?.focus()); } }
+  function closePatientDialog() { if (!isCreatingPatient) patientDialogRef.current?.close(); }
+  async function submitPatient(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setPatientError(""); setIsCreatingPatient(true);
+    const form = new FormData(event.currentTarget);
+    try {
+      const result = await createPatient({ firstName: String(form.get("firstName") ?? ""), lastName: String(form.get("lastName") ?? ""), rut: String(form.get("rut") ?? ""), phone: String(form.get("phone") ?? ""), email: String(form.get("email") ?? ""), consentGranted: form.get("consentGranted") === "on" });
+      const created = { id: result.id, name: result.name, phone: String(form.get("phone") ?? "").trim() || null, email: String(form.get("email") ?? "").trim() || null };
+      setLocalPatients((current) => [created, ...current]); choosePatient(created); setNotice("Paciente creado y seleccionado."); patientDialogRef.current?.close(); event.currentTarget.reset();
+    } catch (cause) { setPatientError(message(cause, "No pudimos crear el paciente. Intenta nuevamente.")); }
+    finally { setIsCreatingPatient(false); }
+  }
   function close() { if (!isCreating) onClose(); }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -143,16 +157,24 @@ function AgendaCreateDialog({ createAt, professional, boxes, patients, sessionTy
       <div className="agenda-appointment-dialog-content agenda-dialog-body">
         <div className="agenda-dialog-fields">
           <div className="agenda-professional-summary"><span className="agenda-avatar" aria-hidden="true">{initials(professional.name)}</span><div><span>Profesional</span><strong>{professional.name}</strong></div></div>
-          <label className="agenda-patient-field">Paciente<input type="text" value={patientName} onChange={(event) => changePatientName(event.target.value)} autoComplete="off" placeholder="Busca por nombre o correo" aria-autocomplete="list" aria-controls="agenda-patient-results" disabled={isCreating} required />{matches.length && !patientId ? <ul className="agenda-patient-suggestions" id="agenda-patient-results" role="listbox">{matches.map((patient) => <li key={patient.id}><button type="button" onClick={() => choosePatient(patient)} disabled={isCreating}><strong>{patient.name}</strong><span>{patient.email ?? patient.phone ?? "Sin datos de contacto"}</span></button></li>)}</ul> : null}<small>Puedes escribir un nombre para una persona paciente nueva.</small></label>
+          <div className="agenda-patient-control"><div className="agenda-patient-label-row"><label htmlFor="agenda-patient-input">Paciente</label><button className="agenda-create-patient-button" type="button" onClick={openPatientDialog} disabled={isCreating}><CreatePatientIcon />Crear paciente</button></div><div className="agenda-patient-field"><input id="agenda-patient-input" type="text" value={patientName} onChange={(event) => changePatientName(event.target.value)} autoComplete="off" placeholder="Busca por nombre o correo" aria-autocomplete="list" aria-controls="agenda-patient-results" disabled={isCreating} required />{matches.length && !patientId ? <ul className="agenda-patient-suggestions" id="agenda-patient-results" role="listbox">{matches.map((patient) => <li key={patient.id}><button type="button" onClick={() => choosePatient(patient)} disabled={isCreating}><strong>{patient.name}</strong><span>{patient.email ?? patient.phone ?? "Sin datos de contacto"}</span></button></li>)}</ul> : null}</div><small>Puedes seleccionar un paciente existente o crear una ficha nueva.</small></div>
           <label>Tipo de sesión<select className="agenda-session-type-select" value={sessionTypeId} onChange={(event) => changeSessionType(event.target.value)} disabled={isCreating}><option value="">Sin tipo específico</option>{sessionTypes.map((type) => <option value={type.id} key={type.id}>{type.name} · {type.durationMinutes} min</option>)}</select></label>
           <label>Sala / Box<select value={boxId} onChange={(event) => setBoxId(event.target.value)} disabled={isCreating}><option value="">Sin box</option>{boxes.map((box) => <option value={box.id} key={box.id}>{box.name} · Activo</option>)}</select><small className="agenda-box-state"><span/>Los boxes disponibles están activos</small></label>
           <label>Duración<select className="agenda-duration-select" value={duration} onChange={(event) => setDuration(Number(event.target.value))} disabled={isCreating}>{!durationGroups.flatMap((group) => group.values).includes(duration) ? <option value={duration}>{durationLabel(duration)} · Finaliza {timeFromMinutes(createAt.startMinutes + duration)}</option> : null}{durationGroups.map((group) => <optgroup label={group.label} key={group.label}>{group.values.map((minutes) => <option value={minutes} key={minutes}>{durationLabel(minutes)} · Finaliza {timeFromMinutes(createAt.startMinutes + minutes)}</option>)}</optgroup>)}</select></label>
           <label>Notas (opcional)<textarea value={notes} onChange={(event) => setNotes(event.target.value)} disabled={isCreating} maxLength={2000} placeholder="Agrega información relevante para la cita" /></label>
         </div>
-        <aside className="agenda-dialog-summary" aria-live="polite"><h3>Resumen de cita</h3><dl><div><dt>Horario</dt><dd>{startsAt} - {endsAt} · {durationLabel(duration)}</dd></div><div><dt>Profesional</dt><dd>{professional.name}</dd></div><div><dt>Sala / Box</dt><dd>{selectedBox?.name ?? "Sin box"}</dd></div><div><dt>Tipo de sesión</dt><dd>{selectedType?.name ?? "Sin tipo específico"}</dd></div></dl></aside>
+        <aside className="agenda-dialog-summary" aria-live="polite"><h3>Resumen de cita</h3><dl><div><dt>Paciente</dt><dd>{patientName.trim() || "Sin paciente"}</dd></div><div><dt>Horario</dt><dd>{startsAt} - {endsAt} · {durationLabel(duration)}</dd></div><div><dt>Profesional</dt><dd>{professional.name}</dd></div><div><dt>Sala / Box</dt><dd>{selectedBox?.name ?? "Sin box"}</dd></div><div><dt>Tipo de sesión</dt><dd>{selectedType?.name ?? "Sin tipo específico"}</dd></div></dl></aside>
+        {notice ? <p className="agenda-dialog-notice agenda-dialog-error--wide" role="status">{notice}</p> : null}
         {error ? <p className="agenda-dialog-error agenda-dialog-error--wide" role="alert">{error}</p> : null}
       </div>
       <footer className="agenda-appointment-dialog-footer"><button className="button" type="button" onClick={close} disabled={isCreating}>Cancelar</button><button className="button button-primary" type="submit" disabled={isCreating}>{isCreating ? "Creando..." : "Crear cita"}</button></footer>
     </form>
+    <dialog className="create-patient-dialog" ref={patientDialogRef} aria-labelledby="create-patient-title" onCancel={(event) => { if (isCreatingPatient) event.preventDefault(); else closePatientDialog(); }}>
+      <form onSubmit={submitPatient}>
+        <header><div><h2 id="create-patient-title" ref={patientTitleRef} tabIndex={-1}>Crear paciente</h2><p>Completa los datos básicos de la ficha.</p></div><button className="icon-button" type="button" aria-label="Cerrar creación de paciente" onClick={closePatientDialog} disabled={isCreatingPatient}><CloseIcon /></button></header>
+        <div className="create-patient-dialog-body"><div className="agenda-create-patient-grid"><label>Nombre *<input name="firstName" required maxLength={120} autoComplete="given-name" disabled={isCreatingPatient} /></label><label>Apellido *<input name="lastName" required maxLength={120} autoComplete="family-name" disabled={isCreatingPatient} /></label><label>RUT (opcional)<input name="rut" placeholder="12345678-9" pattern="[0-9]{7,8}-[0-9kK]" disabled={isCreatingPatient} /></label><label>Teléfono (opcional)<input name="phone" type="tel" autoComplete="tel" maxLength={48} disabled={isCreatingPatient} /></label><label className="agenda-create-patient-email">Email (opcional)<input name="email" type="email" autoComplete="email" maxLength={320} disabled={isCreatingPatient} /></label></div><label className="agenda-consent-field"><input name="consentGranted" type="checkbox" disabled={isCreatingPatient} /><span><strong>Consentimiento informado</strong>La persona autoriza el tratamiento de sus datos personales y de salud.</span></label>{patientError ? <p className="agenda-dialog-error" role="alert">{patientError}</p> : null}</div>
+        <footer><button className="button" type="button" onClick={closePatientDialog} disabled={isCreatingPatient}>Cancelar</button><button className="button button-primary" type="submit" disabled={isCreatingPatient}>{isCreatingPatient ? "Creando..." : "Crear paciente"}</button></footer>
+      </form>
+    </dialog>
   </dialog>;
 }
