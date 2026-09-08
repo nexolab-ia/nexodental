@@ -161,10 +161,11 @@ Objetivo: esquema + RLS + rol app funcionando contra Supabase, con la suite de i
 - Smoke E2E manual: sign-in demo → dashboard/agenda/pacientes/cobros; crear cita; subir documento (storage); trigger reminders manual; verificar RLS (usuario sin membresía → /onboarding; profesional sin billing → 404).
 - **Puerta**: checklist integral verde + capturas para Bryan (validación visual, como pide el flujo).
 
-### Fase 6 — Cutover y rollback
+### Fase 6 — Cutover y rollback — ✅ **EJECUTADO 2026-09-05**
 
-- **Cutover = solo DNS**: apuntar `dental.nexolabs.cloud` a Vercel (CNAME → `cname.vercel-dns.com`; TTL bajo 24–48 h antes). La app ya está desplegada y validada en `*.vercel.app` desde el merge de Fase 5.
-- **Rollback = revertir DNS** a Coolify (minutos, sin re-deploy). **Ventana de observación: 1 semana** con Coolify vivo como rollback (el web de Coolify sigue apuntando a su Postgres; no compartir la misma DB — si se usó la misma base para validar, congelar writes de Coolify antes del cutover).
+- ✅ DNS `dental.nexolabs.cloud` → `cname.vercel-dns.com` (CNAME en Cloudflare, proxied off). HTTPS servido por Vercel inmediato. Envs `AUTH_URL`/`APP_URL` revertidas a `https://dental.nexolabs.cloud` ANTES del flip (deploy `4226b73`).
+- ✅ Verificación post-cutover: `/api/health/ready` 200 `{"status":"ready"}` · landing 200 · sign-in demo 200 en el dominio final · dashboard con datos Supabase (Clínica Sonrisa Andes).
+- Rollback disponible: revertir CNAME Cloudflare a `vps.nexolabs.cloud` (minutos). **Ventana de observación: 1 semana** (Coolify vivo, sin writes nuevos contra su Postgres).
 - Monitoreo: Vercel Observability (errores 5xx, latencia), Supabase (uso, backups), alertas de health.
 - Backups: Supabase Pro **PITR** activo + `pg_dump` semanal a bucket privado (fuera de Supabase: R2/B2) — resiliencia ante desastre regional (Ley 21.719: contrato DPA con Supabase cubre; ver §8).
 - Cierre: stop app Coolify; documentar descomisión en runbook; actualizar `docs/deploy/` (nuevo runbook Vercel+Supabase reemplaza `docs/deploy/coolify.md`).

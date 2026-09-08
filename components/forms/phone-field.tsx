@@ -15,6 +15,7 @@ interface PhoneFieldProps {
   autoComplete?: string;
   required?: boolean;
   initialValue?: string;
+  disabled?: boolean;
 }
 
 function PhoneFlag({ code }: { code: string }) {
@@ -32,7 +33,7 @@ function PhoneFlag({ code }: { code: string }) {
   return <span className="phone-flag phone-flag-fallback" aria-label={`País ${code.toUpperCase()}`}>{code.toUpperCase()}</span>;
 }
 
-export function PhoneField({ name, label, optional, error, autoComplete, required, initialValue }: PhoneFieldProps) {
+export function PhoneField({ name, label, optional, error, autoComplete, required, initialValue, disabled }: PhoneFieldProps) {
   const inputId = useId();
   const errorId = `${inputId}-error`;
   const [country, setCountry] = useState<PhoneCountry>(DEFAULT_PHONE_COUNTRY);
@@ -64,6 +65,7 @@ export function PhoneField({ name, label, optional, error, autoComplete, require
               aria-expanded={countryMenuOpen}
               aria-controls={`${inputId}-countries`}
               onClick={() => setCountryMenuOpen((open) => !open)}
+              disabled={disabled}
             >
               <PhoneFlag code={country.code} />
               {country.dial}
@@ -97,6 +99,7 @@ export function PhoneField({ name, label, optional, error, autoComplete, require
           placeholder="9 8765 4321"
           autoComplete={autoComplete}
           required={required}
+          disabled={disabled}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : undefined}
         />

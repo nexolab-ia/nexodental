@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState, useTransition, type CSSProperties, type FormEvent } from "react";
 import { getAgendaAppointments, type AgendaAppointment } from "./agenda-actions";
 import { createAgendaAppointment } from "./agenda-create-actions";
-import { createPatient } from "@/features/patients/actions";
+import { createPatientForAppointment, type ConvenioOption } from "@/app/(app)/patients/actions";
+import { PatientCreateDialog } from "@/components/patients/patient-create-dialog";
 import { addLocalDays, localTime, santiagoDateKey, santiagoDateKeyToUtc, santiagoLocalToUtc, startOfLocalWeek } from "./domain";
 
 type View = "day" | "week";
@@ -37,7 +38,7 @@ function timeFromMinutes(minutes: number): string { return `${String(Math.floor(
 function defaultEndTime(startMinutes: number, duration: number): string { return timeFromMinutes(Math.min(startMinutes + Math.max(duration, 1), 23 * 60 + 59)); }
 function message(cause: unknown, fallback: string): string { return cause instanceof Error && cause.message ? cause.message : fallback; }
 
-export function AgendaClient({ professionals, boxes, patients, sessionTypes, blockDuration, initialAppointments, initialDate }: { professionals: Professional[]; boxes: Box[]; patients: Patient[]; sessionTypes: SessionType[]; blockDuration: number; initialAppointments: AgendaAppointment[]; initialDate: string }) {
+export function AgendaClient({ professionals, boxes, patients, convenios, sessionTypes, blockDuration, initialAppointments, initialDate }: { professionals: Professional[]; boxes: Box[]; patients: Patient[]; convenios: ConvenioOption[]; sessionTypes: SessionType[]; blockDuration: number; initialAppointments: AgendaAppointment[]; initialDate: string }) {
   const [view, setView] = useState<View>("day"); const [date, setDate] = useState(initialDate); const [filterMode, setFilterMode] = useState<FilterMode>("professional");
   const [selectedProfessionalId, setSelectedProfessionalId] = useState(professionals[0]?.id ?? ""); const [selectedBoxId, setSelectedBoxId] = useState(boxes[0]?.id ?? "");
   const [appointments, setAppointments] = useState(initialAppointments); const [now, setNow] = useState(() => new Date()); const [loadError, setLoadError] = useState(""); const [notice, setNotice] = useState("");
@@ -98,7 +99,7 @@ export function AgendaClient({ professionals, boxes, patients, sessionTypes, blo
       </div>; })}
     </div></div>
     {!isPending && visibleAppointments.filter((item) => days.includes(dateKeyAtSantiago(item.startsAt))).length === 0 ? <div className="agenda-empty"><Icon name="calendar" /><div><strong>Sin citas</strong><p>No hay citas programadas para este rango y selección.</p></div><button type="button" onClick={() => view === "day" ? changeView("week") : selectDate(today)}>{view === "day" ? "Ver semana" : "Volver a hoy"}</button></div> : null}
-    {createDialogAt && selectedProfessional ? <AgendaCreateDialog key={`${createDialogAt.dateKey}-${createDialogAt.startMinutes}-${selectedProfessional.id}`} createAt={createDialogAt} professional={selectedProfessional} boxes={boxes} patients={patients} sessionTypes={sessionTypes} blockDuration={blockDuration} onClose={() => setCreateDialogAt(null)} onCreated={createdAppointment} /> : null}
+    {createDialogAt && selectedProfessional ? <AgendaCreateDialog key={`${createDialogAt.dateKey}-${createDialogAt.startMinutes}-${selectedProfessional.id}`} createAt={createDialogAt} professional={selectedProfessional} boxes={boxes} patients={patients} convenios={convenios} sessionTypes={sessionTypes} blockDuration={blockDuration} onClose={() => setCreateDialogAt(null)} onCreated={createdAppointment} /> : null}
   </section>;
 }
 
@@ -113,11 +114,11 @@ function durationLabel(minutes: number): string {
   return remainder ? `${hours} h ${remainder} min` : `${hours} h`;
 }
 
-function AgendaCreateDialog({ createAt, professional, boxes, patients, sessionTypes, blockDuration, onClose, onCreated }: { createAt: CreateAt; professional: Professional; boxes: Box[]; patients: Patient[]; sessionTypes: SessionType[]; blockDuration: number; onClose: () => void; onCreated: () => Promise<void> }) {
-  const dialogRef = useRef<HTMLDialogElement>(null); const titleRef = useRef<HTMLHeadingElement>(null); const patientDialogRef = useRef<HTMLDialogElement>(null); const patientTitleRef = useRef<HTMLHeadingElement>(null);
+function AgendaCreateDialog({ createAt, professional, boxes, patients, convenios, sessionTypes, blockDuration, onClose, onCreated }: { createAt: CreateAt; professional: Professional; boxes: Box[]; patients: Patient[]; convenios: ConvenioOption[]; sessionTypes: SessionType[]; blockDuration: number; onClose: () => void; onCreated: () => Promise<void> }) {
+  const dialogRef = useRef<HTMLDialogElement>(null); const titleRef = useRef<HTMLHeadingElement>(null); const patientDialogRef = useRef<HTMLDialogElement>(null);
   const defaultType = sessionTypes.find((item) => item.isDefault) ?? null;
   const initialDuration = defaultType?.durationMinutes ?? (durationGroups.flatMap((group) => group.values).includes(blockDuration) ? blockDuration : 30);
-  const [patientName, setPatientName] = useState(""); const [patientId, setPatientId] = useState<string | null>(null); const [patientContact, setPatientContact] = useState<string | null>(null); const [localPatients, setLocalPatients] = useState(patients); const [boxId, setBoxId] = useState(""); const [sessionTypeId, setSessionTypeId] = useState(defaultType?.id ?? ""); const [duration, setDuration] = useState(initialDuration); const [notes, setNotes] = useState(""); const [error, setError] = useState(""); const [notice, setNotice] = useState(""); const [isCreating, setIsCreating] = useState(false); const [isCreatingPatient, setIsCreatingPatient] = useState(false); const [patientError, setPatientError] = useState("");
+  const [patientName, setPatientName] = useState(""); const [patientId, setPatientId] = useState<string | null>(null); const [patientContact, setPatientContact] = useState<string | null>(null); const [localPatients, setLocalPatients] = useState(patients); const [patientFormKey, setPatientFormKey] = useState(0); const [boxId, setBoxId] = useState(""); const [sessionTypeId, setSessionTypeId] = useState(defaultType?.id ?? ""); const [duration, setDuration] = useState(initialDuration); const [notes, setNotes] = useState(""); const [error, setError] = useState(""); const [notice, setNotice] = useState(""); const [isCreating, setIsCreating] = useState(false); const [isCreatingPatient, setIsCreatingPatient] = useState(false); const [patientError, setPatientError] = useState("");
   const startsAt = timeFromMinutes(createAt.startMinutes); const endsAt = timeFromMinutes(createAt.startMinutes + duration);
   const selectedBox = boxes.find((item) => item.id === boxId); const selectedType = sessionTypes.find((item) => item.id === sessionTypeId);
   const matches = useMemo(() => { const query = patientName.trim().toLocaleLowerCase("es-CL"); if (!query) return []; return localPatients.filter((patient) => `${patient.name} ${patient.email ?? ""}`.toLocaleLowerCase("es-CL").includes(query)).slice(0, 6); }, [patientName, localPatients]);
@@ -126,15 +127,14 @@ function AgendaCreateDialog({ createAt, professional, boxes, patients, sessionTy
   function choosePatient(patient: Patient) { setPatientName(patient.name); setPatientId(patient.id); setPatientContact(patient.phone ?? patient.email); }
   function changePatientName(value: string) { setPatientName(value); setNotice(""); const exact = localPatients.find((patient) => patient.name.toLocaleLowerCase("es-CL") === value.trim().toLocaleLowerCase("es-CL")); if (exact) choosePatient(exact); else { setPatientId(null); setPatientContact(null); } }
   function changeSessionType(id: string) { setSessionTypeId(id); const type = sessionTypes.find((item) => item.id === id); if (type) setDuration(type.durationMinutes); }
-  function openPatientDialog() { setPatientError(""); const dialog = patientDialogRef.current; if (dialog && !dialog.open) { dialog.showModal(); requestAnimationFrame(() => patientTitleRef.current?.focus()); } }
-  function closePatientDialog() { if (!isCreatingPatient) patientDialogRef.current?.close(); }
+  function openPatientDialog() { setPatientError(""); const dialog = patientDialogRef.current; if (dialog && !dialog.open) dialog.showModal(); }
   async function submitPatient(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setPatientError(""); setIsCreatingPatient(true);
     const form = new FormData(event.currentTarget);
     try {
-      const result = await createPatient({ firstName: String(form.get("firstName") ?? ""), lastName: String(form.get("lastName") ?? ""), rut: String(form.get("rut") ?? ""), phone: String(form.get("phone") ?? ""), email: String(form.get("email") ?? ""), consentGranted: form.get("consentGranted") === "on" });
+      const result = await createPatientForAppointment(form);
       const created = { id: result.id, name: result.name, phone: String(form.get("phone") ?? "").trim() || null, email: String(form.get("email") ?? "").trim() || null };
-      setLocalPatients((current) => [created, ...current]); choosePatient(created); setNotice("Paciente creado y seleccionado."); patientDialogRef.current?.close(); event.currentTarget.reset();
+      setLocalPatients((current) => [created, ...current]); choosePatient(created); setNotice("Paciente creado y seleccionado."); patientDialogRef.current?.close(); setPatientFormKey((current) => current + 1);
     } catch (cause) { setPatientError(message(cause, "No pudimos crear el paciente. Intenta nuevamente.")); }
     finally { setIsCreatingPatient(false); }
   }
@@ -151,7 +151,8 @@ function AgendaCreateDialog({ createAt, professional, boxes, patients, sessionTy
     finally { setIsCreating(false); }
   }
 
-  return <dialog className="agenda-appointment-dialog" ref={dialogRef} aria-labelledby="agenda-create-title" onCancel={(event) => { if (isCreating) event.preventDefault(); else close(); }} onClose={onClose}>
+  return <>
+  <dialog className="agenda-appointment-dialog" ref={dialogRef} aria-labelledby="agenda-create-title" onCancel={(event) => { if (isCreating) event.preventDefault(); else close(); }} onClose={onClose}>
     <form className="agenda-appointment-form" onSubmit={submit}>
       <header className="agenda-appointment-dialog-header"><div><h2 id="agenda-create-title" ref={titleRef} tabIndex={-1}>Nueva cita</h2><p>{formatLongDate(createAt.dateKey)}</p></div><button className="icon-button" type="button" aria-label="Cerrar nueva cita" onClick={close} disabled={isCreating}><CloseIcon /></button></header>
       <div className="agenda-appointment-dialog-content agenda-dialog-body">
@@ -169,12 +170,7 @@ function AgendaCreateDialog({ createAt, professional, boxes, patients, sessionTy
       </div>
       <footer className="agenda-appointment-dialog-footer"><button className="button" type="button" onClick={close} disabled={isCreating}>Cancelar</button><button className="button button-primary" type="submit" disabled={isCreating}>{isCreating ? "Creando..." : "Crear cita"}</button></footer>
     </form>
-    <dialog className="create-patient-dialog" ref={patientDialogRef} aria-labelledby="create-patient-title" onCancel={(event) => { if (isCreatingPatient) event.preventDefault(); else closePatientDialog(); }}>
-      <form onSubmit={submitPatient}>
-        <header><div><h2 id="create-patient-title" ref={patientTitleRef} tabIndex={-1}>Crear paciente</h2><p>Completa los datos básicos de la ficha.</p></div><button className="icon-button" type="button" aria-label="Cerrar creación de paciente" onClick={closePatientDialog} disabled={isCreatingPatient}><CloseIcon /></button></header>
-        <div className="create-patient-dialog-body"><div className="agenda-create-patient-grid"><label>Nombre *<input name="firstName" required maxLength={120} autoComplete="given-name" disabled={isCreatingPatient} /></label><label>Apellido *<input name="lastName" required maxLength={120} autoComplete="family-name" disabled={isCreatingPatient} /></label><label>RUT (opcional)<input name="rut" placeholder="12345678-9" pattern="[0-9]{7,8}-[0-9kK]" disabled={isCreatingPatient} /></label><label>Teléfono (opcional)<input name="phone" type="tel" autoComplete="tel" maxLength={48} disabled={isCreatingPatient} /></label><label className="agenda-create-patient-email">Email (opcional)<input name="email" type="email" autoComplete="email" maxLength={320} disabled={isCreatingPatient} /></label></div><label className="agenda-consent-field"><input name="consentGranted" type="checkbox" disabled={isCreatingPatient} /><span><strong>Consentimiento informado</strong>La persona autoriza el tratamiento de sus datos personales y de salud.</span></label>{patientError ? <p className="agenda-dialog-error" role="alert">{patientError}</p> : null}</div>
-        <footer><button className="button" type="button" onClick={closePatientDialog} disabled={isCreatingPatient}>Cancelar</button><button className="button button-primary" type="submit" disabled={isCreatingPatient}>{isCreatingPatient ? "Creando..." : "Crear paciente"}</button></footer>
-      </form>
-    </dialog>
-  </dialog>;
+  </dialog>
+    <PatientCreateDialog key={patientFormKey} dialogRef={patientDialogRef} convenios={convenios} onSubmit={submitPatient} pending={isCreatingPatient} error={patientError} />
+  </>;
 }
