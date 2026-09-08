@@ -10,5 +10,5 @@ export async function getAgendaAppointments(from: string, to: string): Promise<A
   const maximumRange = 8 * 24 * 60 * 60 * 1000;
   if (!Number.isFinite(startsAt.getTime()) || !Number.isFinite(endsAt.getTime()) || startsAt >= endsAt || endsAt.getTime() - startsAt.getTime() > maximumRange) throw new Error("El rango de la agenda no es válido.");
   const actor = await requestTenantContext();
-  return loadAgendaAppointments(actor, startsAt, endsAt);
+  return loadAgendaAppointments(actor, startsAt.toISOString(), endsAt.toISOString());
 }

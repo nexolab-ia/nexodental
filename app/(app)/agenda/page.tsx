@@ -17,7 +17,7 @@ export default async function AgendaPage() {
     tx<AvailabilityRow[]>`SELECT professional_membership_id AS "professionalMembershipId", weekday, starts_at::text AS "startsAt", ends_at::text AS "endsAt" FROM professional_availability WHERE organization_id = ${actor.organizationId}`,
   ]));
   const initialDate = santiagoDateKey(new Date()); const monday = startOfLocalWeek(initialDate);
-  const initialAppointments = await loadAgendaAppointments(actor, santiagoDateKeyToUtc(monday), santiagoDateKeyToUtc(addLocalDays(monday, 7)));
+  const initialAppointments = await loadAgendaAppointments(actor, santiagoDateKeyToUtc(monday).toISOString(), santiagoDateKeyToUtc(addLocalDays(monday, 7)).toISOString());
   const enrichedProfessionals = professionals.map((professional) => ({ ...professional, availability: availability.filter((item) => item.professionalMembershipId === professional.id).map(({ weekday, startsAt, endsAt }) => ({ weekday, startsAt: startsAt.slice(0, 5), endsAt: endsAt.slice(0, 5) })) }));
   return <main><AgendaClient professionals={enrichedProfessionals} boxes={boxes} initialAppointments={initialAppointments} initialDate={initialDate} /></main>;
 }
