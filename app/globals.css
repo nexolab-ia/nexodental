@@ -2258,12 +2258,19 @@ textarea[aria-invalid="true"] {
 .agenda-create-slot:hover, .agenda-create-slot:focus-visible, .agenda-create-slot.is-active { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .agenda-create-slot:active { transform: scale(0.98); }
 .agenda-create-slot:focus-visible { z-index: 3; outline: 2px solid var(--accent); outline-offset: -2px; }
+.agenda-create-slot:disabled { cursor: not-allowed; }
 .agenda-slot-plus { opacity: 0; font-size: 1rem; font-weight: 700; line-height: 1; transition: opacity 160ms ease-out; }
 .agenda-create-slot:hover .agenda-slot-plus, .agenda-create-slot:focus-visible .agenda-slot-plus { opacity: 0.7; }
 .agenda-create-slot.is-active .agenda-slot-plus { display: none; }
 .agenda-agendar-chip { display: inline-flex; align-items: center; gap: 0.35rem; max-width: calc(100% - 0.65rem); min-height: 28px; padding: 0.25rem 0.45rem; border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border)); border-radius: 6px; background: color-mix(in srgb, var(--accent) 15%, var(--surface-2)); color: var(--accent); font-size: 0.68rem; font-weight: 800; white-space: nowrap; }
 .agenda-agendar-chip small { font-family: var(--font-mono); font-size: 0.61rem; font-variant-numeric: tabular-nums; }
-.agenda-appointment { position: absolute; z-index: 2; inset-inline: 5px; display: grid; align-content: start; gap: 0.1rem; overflow: hidden; padding: 0.45rem 0.55rem; border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border)); border-inline-start: 3px solid var(--accent); border-radius: 7px; background: color-mix(in srgb, var(--accent) 13%, var(--surface-2)); color: var(--ink); font-size: 0.72rem; }
+.agenda-block-overlay { position: absolute; z-index: 2; inset-inline: 0; display: grid; min-height: 1px; place-items: start center; overflow: hidden; cursor: not-allowed; isolation: isolate; pointer-events: auto; }
+.agenda-block-stripes { position: absolute; z-index: -1; inset: 0; border-block: 1px solid color-mix(in srgb, var(--muted) 28%, var(--border)); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--muted) 20%, transparent) 0 7px, color-mix(in srgb, var(--surface-2) 62%, transparent) 7px 14px); opacity: 0.72; }
+.agenda-block-tag { display: inline-grid; grid-template-columns: auto auto; align-items: center; gap: 0.15rem 0.35rem; max-width: calc(100% - 0.75rem); margin-block-start: 0.4rem; padding: 0.3rem 0.5rem; border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border)); border-radius: 7px; background: var(--surface-2); color: var(--accent); box-shadow: 0 3px 10px rgb(2 6 23 / 28%); pointer-events: none; }
+.agenda-block-tag svg { grid-row: 1 / span 2; width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.agenda-block-tag strong { overflow: hidden; font-size: 0.68rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.agenda-block-range { overflow: hidden; color: var(--muted); font-family: var(--font-mono); font-size: 0.58rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.agenda-appointment { position: absolute; z-index: 3; inset-inline: 5px; display: grid; align-content: start; gap: 0.1rem; overflow: hidden; padding: 0.45rem 0.55rem; border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border)); border-inline-start: 3px solid var(--accent); border-radius: 7px; background: color-mix(in srgb, var(--accent) 13%, var(--surface-2)); color: var(--ink); font-size: 0.72rem; }
 .agenda-appointment strong { overflow: hidden; font-size: 0.76rem; text-overflow: ellipsis; white-space: nowrap; }
 .agenda-appointment span { font-family: var(--font-mono); font-size: 0.66rem; font-variant-numeric: tabular-nums; }
 .agenda-appointment small { color: var(--muted); font-size: 0.63rem; }

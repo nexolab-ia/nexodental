@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition, type CSSProperties, type FormEvent } from "react";
-import { getAgendaAppointments, type AgendaAppointment } from "./agenda-actions";
+import { getAgendaAppointments, getAgendaBlocksForRange, type AgendaAppointment, type AgendaBlock } from "./agenda-actions";
 import { createAgendaAppointment } from "./agenda-create-actions";
 import { createPatientForAppointment, type ConvenioOption } from "@/app/(app)/patients/actions";
 import { PatientCreateDialog } from "@/components/patients/patient-create-dialog";
@@ -37,8 +37,11 @@ function initials(name: string): string { return name.split(/\s+/).filter(Boolea
 function timeFromMinutes(minutes: number): string { return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`; }
 function defaultEndTime(startMinutes: number, duration: number): string { return timeFromMinutes(Math.min(startMinutes + Math.max(duration, 1), 23 * 60 + 59)); }
 function message(cause: unknown, fallback: string): string { return cause instanceof Error && cause.message ? cause.message : fallback; }
+function minutesFromTime(time: string): number { const [hour, minute] = time.slice(0, 5).split(":").map(Number); return hour * 60 + minute; }
+const reasonLabels: Record<AgendaBlock["reason"], string> = { meeting: "Reunión", training: "Capacitación", procedure: "Procedimiento", permission: "Permiso", holiday: "Feriado", maintenance: "Mantención", other: "Otro" };
+function ProhibitionIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m6.4 6.4 11.2 11.2" /></svg>; }
 
-export function AgendaClient({ professionals, boxes, patients, convenios, sessionTypes, blockDuration, initialAppointments, initialDate }: { professionals: Professional[]; boxes: Box[]; patients: Patient[]; convenios: ConvenioOption[]; sessionTypes: SessionType[]; blockDuration: number; initialAppointments: AgendaAppointment[]; initialDate: string }) {
+export function AgendaClient({ professionals, boxes, patients, convenios, sessionTypes, blockDuration, initialAppointments, blocks: initialBlocks, initialDate }: { professionals: Professional[]; boxes: Box[]; patients: Patient[]; convenios: ConvenioOption[]; sessionTypes: SessionType[]; blockDuration: number; initialAppointments: AgendaAppointment[]; blocks: AgendaBlock[]; initialDate: string }) {
   const [view, setView] = useState<View>("day");
   const [globalPeriod, setGlobalPeriod] = useState<"day" | "week">("day");
   const [date, setDate] = useState(initialDate);
@@ -48,6 +51,7 @@ export function AgendaClient({ professionals, boxes, patients, convenios, sessio
   const [boxQuery, setBoxQuery] = useState(boxes[0]?.name ?? "");
   const [boxListOpen, setBoxListOpen] = useState(false);
   const [appointments, setAppointments] = useState(initialAppointments);
+  const [blocks, setBlocks] = useState(initialBlocks);
   const [now, setNow] = useState(() => new Date());
   const [loadError, setLoadError] = useState("");
   const [notice, setNotice] = useState("");
@@ -67,13 +71,15 @@ export function AgendaClient({ professionals, boxes, patients, convenios, sessio
     return query ? boxes.filter((box) => box.name.toLocaleLowerCase("es-CL").includes(query)) : boxes;
   }, [boxQuery, boxes]);
   const visibleAppointments = useMemo(() => view === "global" ? appointments : appointments.filter((item) => filterMode === "professional" ? item.professionalMembershipId === selectedProfessionalId : item.boxId === selectedBoxId), [appointments, filterMode, selectedBoxId, selectedProfessionalId, view]);
+  const visibleBlocks = useMemo(() => blocks.filter((block) => block.scope === "clinic" || (filterMode === "box" && (view === "global" || block.boxId === selectedBoxId))), [blocks, filterMode, selectedBoxId, view]);
   const available = view === "global" || filterMode === "box" ? professionals.flatMap((item) => item.availability) : selectedProfessional?.availability ?? [];
   const relevantAvailability = available.filter((item) => days.some((day) => weekdayIndex(day) === weekdays.indexOf(item.weekday)));
   const availabilityStarts = relevantAvailability.map((item) => Number(item.startsAt.slice(0, 2)) * 60 + Number(item.startsAt.slice(3, 5)));
   const availabilityEnds = relevantAvailability.map((item) => Number(item.endsAt.slice(0, 2)) * 60 + Number(item.endsAt.slice(3, 5)) + 60);
   const appointmentMinutes = visibleAppointments.filter((item) => days.includes(dateKeyAtSantiago(item.startsAt))).flatMap((item) => [minutesAtSantiago(item.startsAt), minutesAtSantiago(item.endsAt)]);
-  const startMinutes = Math.max(0, Math.floor(Math.min(7 * 60, ...availabilityStarts, ...appointmentMinutes) / 30) * 30);
-  const endMinutes = Math.min(24 * 60, Math.ceil(Math.max(19 * 60, ...availabilityEnds, ...appointmentMinutes) / 30) * 30);
+  const blockMinutes = visibleBlocks.filter((block) => !block.allDay && block.startsAt && block.endsAt && days.some((day) => block.startsOn <= day && block.endsOn >= day)).flatMap((block) => [minutesFromTime(block.startsAt!), minutesFromTime(block.endsAt!)]);
+  const startMinutes = Math.max(0, Math.floor(Math.min(7 * 60, ...availabilityStarts, ...appointmentMinutes, ...blockMinutes) / 30) * 30);
+  const endMinutes = Math.min(24 * 60, Math.ceil(Math.max(19 * 60, ...availabilityEnds, ...appointmentMinutes, ...blockMinutes) / 30) * 30);
   const slots = Array.from({ length: (endMinutes - startMinutes) / 30 }, (_, i) => startMinutes + i * 30);
   const today = dateKeyAtSantiago(now.toISOString());
   const nowMinutes = minutesAtSantiago(now.toISOString());
@@ -86,11 +92,14 @@ export function AgendaClient({ professionals, boxes, patients, convenios, sessio
     const id = ++requestId.current;
     setLoadError("");
     try {
-      const result = await getAgendaAppointments(santiagoDateKeyToUtc(fromKey).toISOString(), santiagoDateKeyToUtc(toKey).toISOString());
-      if (requestId.current === id) setAppointments(result);
+      const [nextAppointments, nextBlocks] = await Promise.all([
+        getAgendaAppointments(santiagoDateKeyToUtc(fromKey).toISOString(), santiagoDateKeyToUtc(toKey).toISOString()),
+        getAgendaBlocksForRange(fromKey, toKey),
+      ]);
+      if (requestId.current === id) { setAppointments(nextAppointments); setBlocks(nextBlocks); }
       return true;
     } catch {
-      if (requestId.current === id) setLoadError("No pudimos cargar las citas de este rango. Intenta nuevamente.");
+      if (requestId.current === id) setLoadError("No pudimos cargar la agenda de este rango. Intenta nuevamente.");
       return false;
     }
   }
@@ -127,17 +136,47 @@ export function AgendaClient({ professionals, boxes, patients, convenios, sessio
     const fallback = appointment.kind === "block" ? "No disponible" : appointment.status === "cancelled" ? "Cancelada" : appointment.attendance === "missed" ? "No asistió" : appointment.status === "confirmed" ? "Confirmada" : appointment.source === "public" ? "Agendada Online" : "Agendada";
     return <article className={"agenda-appointment " + appointmentState(appointment)} style={{ top, height }} key={appointment.id} title={appointment.notes ?? undefined}><strong>{appointment.kind === "block" ? "Bloque" : appointment.patientName}</strong><span>{formatTime(appointment.startsAt)} - {formatTime(appointment.endsAt)}</span>{appointment.sessionTypeName ? <small>{appointment.sessionTypeName}</small> : <small>{fallback}</small>}</article>;
   }
+  function applicableBlocks(day: string, entity?: Professional | Box): AgendaBlock[] {
+    return blocks.filter((block) => {
+      if (block.startsOn > day || block.endsOn < day) return false;
+      if (block.scope === "clinic") return true;
+      if (filterMode !== "box") return false;
+      return block.boxId === (entity?.id ?? selectedBoxId);
+    });
+  }
+  function blockedAt(laneBlocks: AgendaBlock[], minutes: number): boolean {
+    const slotEnd = minutes + 30;
+    return laneBlocks.some((block) => block.allDay || (block.startsAt && block.endsAt && minutesFromTime(block.startsAt) < slotEnd && minutesFromTime(block.endsAt) > minutes));
+  }
+  function renderBlock(block: AgendaBlock) {
+    const rawStart = block.allDay || !block.startsAt ? startMinutes : minutesFromTime(block.startsAt);
+    const rawEnd = block.allDay || !block.endsAt ? endMinutes : minutesFromTime(block.endsAt);
+    const clippedStart = Math.max(startMinutes, rawStart);
+    const clippedEnd = Math.min(endMinutes, rawEnd);
+    if (clippedEnd <= clippedStart) return null;
+    const top = ((clippedStart - startMinutes) / 30) * halfHourHeight;
+    const height = ((clippedEnd - clippedStart) / 30) * halfHourHeight;
+    const minutes = rawEnd - rawStart;
+    const range = block.allDay ? "Todo el día" : `${block.startsAt!.slice(0, 5)} - ${block.endsAt!.slice(0, 5)} (${minutes} min)`;
+    return <div className="agenda-block-overlay" style={{ top, height }} key={block.id} role="note" aria-label={`${reasonLabels[block.reason]}. ${range}`}>
+      <div className="agenda-block-stripes" aria-hidden="true" />
+      <span className="agenda-block-tag"><ProhibitionIcon /><strong>{reasonLabels[block.reason]}</strong><small className="agenda-block-range">{range}</small></span>
+    </div>;
+  }
   function renderLane(day: string, entity?: Professional | Box) {
     const entityAppointments = visibleAppointments.filter((item) => dateKeyAtSantiago(item.startsAt) === day && (!entity || (filterMode === "professional" ? item.professionalMembershipId === entity.id : item.boxId === entity.id)));
     const showNow = day === today && nowMinutes >= startMinutes && nowMinutes <= endMinutes;
     const professionalId = filterMode === "professional" ? entity?.id : selectedProfessionalId;
     const laneKey = entity ? entity.id + "-" + day : day;
+    const laneBlocks = applicableBlocks(day, entity);
     return <div className={"agenda-day-lane " + (day === today ? "is-today" : "")} key={laneKey} aria-label={"Agenda de " + (entity?.name ?? formatLongDate(day))}>
       <div className="agenda-slot-grid">{slots.map((minutes) => {
         const active = createAt?.dateKey === day && createAt.startMinutes === minutes && createAt.professionalId === professionalId;
+        const blocked = blockedAt(laneBlocks, minutes);
         const endsAt = defaultEndTime(minutes, blockDuration);
-        return <button className={"agenda-create-slot " + (active ? "is-active" : "")} type="button" key={minutes} onClick={() => openCreateSlot(day, minutes, professionalId)} aria-label={active ? "Abrir nueva cita a las " + timeFromMinutes(minutes) : "Seleccionar horario a las " + timeFromMinutes(minutes)}><span className="agenda-slot-plus" aria-hidden="true">+</span>{active ? <span className="agenda-agendar-chip">+ Agendar <small>{timeFromMinutes(minutes)} - {endsAt}</small></span> : null}</button>;
+        return <button className={"agenda-create-slot " + (active ? "is-active" : "")} type="button" key={minutes} disabled={blocked} onClick={() => openCreateSlot(day, minutes, professionalId)} aria-label={blocked ? "Horario bloqueado a las " + timeFromMinutes(minutes) : active ? "Abrir nueva cita a las " + timeFromMinutes(minutes) : "Seleccionar horario a las " + timeFromMinutes(minutes)}><span className="agenda-slot-plus" aria-hidden="true">+</span>{active && !blocked ? <span className="agenda-agendar-chip">+ Agendar <small>{timeFromMinutes(minutes)} - {endsAt}</small></span> : null}</button>;
       })}</div>
+      {laneBlocks.map(renderBlock)}
       {entityAppointments.map(renderAppointment)}
       {showNow ? <div className="agenda-now-line" style={{ top: ((nowMinutes - startMinutes) / 30) * halfHourHeight }} aria-label={"Hora actual " + formatTime(now.toISOString())}><span /></div> : null}
     </div>;
