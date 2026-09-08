@@ -7,7 +7,7 @@ import { createPatientForAppointment, type ConvenioOption } from "@/app/(app)/pa
 import { PatientCreateDialog } from "@/components/patients/patient-create-dialog";
 import { addLocalDays, localTime, santiagoDateKey, santiagoDateKeyToUtc, santiagoLocalToUtc, startOfLocalWeek } from "./domain";
 
-type View = "day" | "week";
+type View = "day" | "week" | "global";
 type FilterMode = "professional" | "box";
 type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 type Availability = { weekday: Weekday; startsAt: string; endsAt: string };
@@ -15,7 +15,7 @@ type Professional = { id: string; name: string; availability: Availability[] };
 type Box = { id: string; name: string };
 type Patient = { id: string; name: string; email: string | null; phone: string | null };
 type SessionType = { id: string; name: string; durationMinutes: number; isDefault: boolean };
-type CreateAt = { dateKey: string; startMinutes: number };
+type CreateAt = { dateKey: string; startMinutes: number; professionalId?: string };
 
 const halfHourHeight = 42;
 const weekdays: Weekday[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -39,17 +39,35 @@ function defaultEndTime(startMinutes: number, duration: number): string { return
 function message(cause: unknown, fallback: string): string { return cause instanceof Error && cause.message ? cause.message : fallback; }
 
 export function AgendaClient({ professionals, boxes, patients, convenios, sessionTypes, blockDuration, initialAppointments, initialDate }: { professionals: Professional[]; boxes: Box[]; patients: Patient[]; convenios: ConvenioOption[]; sessionTypes: SessionType[]; blockDuration: number; initialAppointments: AgendaAppointment[]; initialDate: string }) {
-  const [view, setView] = useState<View>("day"); const [date, setDate] = useState(initialDate); const [filterMode, setFilterMode] = useState<FilterMode>("professional");
-  const [selectedProfessionalId, setSelectedProfessionalId] = useState(professionals[0]?.id ?? ""); const [selectedBoxId, setSelectedBoxId] = useState(boxes[0]?.id ?? "");
-  const [appointments, setAppointments] = useState(initialAppointments); const [now, setNow] = useState(() => new Date()); const [loadError, setLoadError] = useState(""); const [notice, setNotice] = useState("");
-  const [createAt, setCreateAt] = useState<CreateAt | null>(null); const [createDialogAt, setCreateDialogAt] = useState<CreateAt | null>(null); const [isPending, startTransition] = useTransition(); const requestId = useRef(0);
+  const [view, setView] = useState<View>("day");
+  const [globalPeriod, setGlobalPeriod] = useState<"day" | "week">("day");
+  const [date, setDate] = useState(initialDate);
+  const [filterMode, setFilterMode] = useState<FilterMode>("professional");
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState(professionals[0]?.id ?? "");
+  const [selectedBoxId, setSelectedBoxId] = useState(boxes[0]?.id ?? "");
+  const [boxQuery, setBoxQuery] = useState(boxes[0]?.name ?? "");
+  const [boxListOpen, setBoxListOpen] = useState(false);
+  const [appointments, setAppointments] = useState(initialAppointments);
+  const [now, setNow] = useState(() => new Date());
+  const [loadError, setLoadError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [createAt, setCreateAt] = useState<CreateAt | null>(null);
+  const [createDialogAt, setCreateDialogAt] = useState<CreateAt | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const requestId = useRef(0);
+
   useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 60_000); return () => window.clearInterval(timer); }, []);
 
+  const period: "day" | "week" = view === "global" ? globalPeriod : view;
   const monday = startOfLocalWeek(date);
-  const days = useMemo(() => view === "day" ? [date] : Array.from({ length: 7 }, (_, i) => addLocalDays(monday, i)), [date, monday, view]);
+  const days = useMemo(() => period === "day" ? [date] : Array.from({ length: 7 }, (_, i) => addLocalDays(monday, i)), [date, monday, period]);
   const selectedProfessional = professionals.find((item) => item.id === selectedProfessionalId);
-  const visibleAppointments = useMemo(() => appointments.filter((item) => filterMode === "professional" ? item.professionalMembershipId === selectedProfessionalId : item.boxId === selectedBoxId), [appointments, filterMode, selectedBoxId, selectedProfessionalId]);
-  const available = filterMode === "professional" ? selectedProfessional?.availability ?? [] : professionals.flatMap((item) => item.availability);
+  const filteredBoxes = useMemo(() => {
+    const query = boxQuery.trim().toLocaleLowerCase("es-CL");
+    return query ? boxes.filter((box) => box.name.toLocaleLowerCase("es-CL").includes(query)) : boxes;
+  }, [boxQuery, boxes]);
+  const visibleAppointments = useMemo(() => view === "global" ? appointments : appointments.filter((item) => filterMode === "professional" ? item.professionalMembershipId === selectedProfessionalId : item.boxId === selectedBoxId), [appointments, filterMode, selectedBoxId, selectedProfessionalId, view]);
+  const available = view === "global" || filterMode === "box" ? professionals.flatMap((item) => item.availability) : selectedProfessional?.availability ?? [];
   const relevantAvailability = available.filter((item) => days.some((day) => weekdayIndex(day) === weekdays.indexOf(item.weekday)));
   const availabilityStarts = relevantAvailability.map((item) => Number(item.startsAt.slice(0, 2)) * 60 + Number(item.startsAt.slice(3, 5)));
   const availabilityEnds = relevantAvailability.map((item) => Number(item.endsAt.slice(0, 2)) * 60 + Number(item.endsAt.slice(3, 5)) + 60);
@@ -57,10 +75,16 @@ export function AgendaClient({ professionals, boxes, patients, convenios, sessio
   const startMinutes = Math.max(0, Math.floor(Math.min(7 * 60, ...availabilityStarts, ...appointmentMinutes) / 30) * 30);
   const endMinutes = Math.min(24 * 60, Math.ceil(Math.max(19 * 60, ...availabilityEnds, ...appointmentMinutes) / 30) * 30);
   const slots = Array.from({ length: (endMinutes - startMinutes) / 30 }, (_, i) => startMinutes + i * 30);
-  const today = dateKeyAtSantiago(now.toISOString()); const nowMinutes = minutesAtSantiago(now.toISOString());
+  const today = dateKeyAtSantiago(now.toISOString());
+  const nowMinutes = minutesAtSantiago(now.toISOString());
+  const laneEntities = filterMode === "professional" ? professionals : boxes;
 
   async function refreshRange(nextDate: string, nextView: View): Promise<boolean> {
-    const fromKey = nextView === "week" ? startOfLocalWeek(nextDate) : nextDate; const toKey = addLocalDays(fromKey, nextView === "week" ? 7 : 1); const id = ++requestId.current; setLoadError("");
+    const nextPeriod = nextView === "global" ? globalPeriod : nextView;
+    const fromKey = nextPeriod === "week" ? startOfLocalWeek(nextDate) : nextDate;
+    const toKey = addLocalDays(fromKey, nextPeriod === "week" ? 7 : 1);
+    const id = ++requestId.current;
+    setLoadError("");
     try {
       const result = await getAgendaAppointments(santiagoDateKeyToUtc(fromKey).toISOString(), santiagoDateKeyToUtc(toKey).toISOString());
       if (requestId.current === id) setAppointments(result);
@@ -71,35 +95,92 @@ export function AgendaClient({ professionals, boxes, patients, convenios, sessio
     }
   }
   function loadRange(nextDate: string, nextView: View) { startTransition(() => { void refreshRange(nextDate, nextView); }); }
-  function changeView(nextView: View) { setView(nextView); loadRange(date, nextView); }
+  function changeView(nextView: View) {
+    const nextGlobalPeriod = view === "week" ? "week" : view === "day" ? "day" : globalPeriod;
+    if (nextView === "global") setGlobalPeriod(nextGlobalPeriod);
+    setView(nextView);
+    loadRange(date, nextView === "global" ? nextGlobalPeriod : nextView);
+  }
   function selectDate(nextDate: string) { if (!nextDate) return; setDate(nextDate); loadRange(nextDate, view); }
-  function navigate(amount: number) { selectDate(addLocalDays(date, amount * (view === "week" ? 7 : 1))); }
-  function openCreateSlot(dateKey: string, start: number) { if (!selectedProfessional) { setLoadError("Selecciona un profesional para agendar una cita."); return; } if (createAt?.dateKey === dateKey && createAt.startMinutes === start) { setCreateDialogAt(createAt); return; } setLoadError(""); setNotice(""); setCreateAt({ dateKey, startMinutes: start }); setCreateDialogAt(null); }
+  function navigate(amount: number) { selectDate(addLocalDays(date, amount * (period === "week" ? 7 : 1))); }
+  function openCreateSlot(dateKey: string, start: number, professionalId?: string) {
+    const professional = professionals.find((item) => item.id === professionalId) ?? selectedProfessional;
+    if (!professional) { setLoadError("Selecciona un profesional para agendar una cita."); return; }
+    const next = { dateKey, startMinutes: start, professionalId: professional.id };
+    if (createAt?.dateKey === dateKey && createAt.startMinutes === start && createAt.professionalId === professional.id) { setCreateDialogAt(next); return; }
+    setLoadError(""); setNotice(""); setCreateAt(next); setCreateDialogAt(null);
+  }
   async function createdAppointment() { setCreateAt(null); setCreateDialogAt(null); setNotice("La cita se guardó correctamente."); await refreshRange(date, view); }
+  function chooseBox(box: Box) { setSelectedBoxId(box.id); setBoxQuery(box.name); setBoxListOpen(false); }
+  function appointmentState(appointment: AgendaAppointment): string {
+    if (appointment.kind === "block") return "is-block";
+    if (appointment.status === "cancelled") return "is-cancelled";
+    if (appointment.attendance === "missed") return "is-missed";
+    if (appointment.status === "confirmed") return "is-confirmed";
+    return appointment.source === "public" ? "is-online" : "is-agendada";
+  }
+  function renderAppointment(appointment: AgendaAppointment) {
+    const start = minutesAtSantiago(appointment.startsAt);
+    const end = minutesAtSantiago(appointment.endsAt);
+    const top = ((start - startMinutes) / 30) * halfHourHeight;
+    const height = Math.max(halfHourHeight - 3, ((end - start) / 30) * halfHourHeight - 3);
+    const fallback = appointment.kind === "block" ? "No disponible" : appointment.status === "cancelled" ? "Cancelada" : appointment.attendance === "missed" ? "No asistió" : appointment.status === "confirmed" ? "Confirmada" : appointment.source === "public" ? "Agendada Online" : "Agendada";
+    return <article className={"agenda-appointment " + appointmentState(appointment)} style={{ top, height }} key={appointment.id} title={appointment.notes ?? undefined}><strong>{appointment.kind === "block" ? "Bloque" : appointment.patientName}</strong><span>{formatTime(appointment.startsAt)} - {formatTime(appointment.endsAt)}</span>{appointment.sessionTypeName ? <small>{appointment.sessionTypeName}</small> : <small>{fallback}</small>}</article>;
+  }
+  function renderLane(day: string, entity?: Professional | Box) {
+    const entityAppointments = visibleAppointments.filter((item) => dateKeyAtSantiago(item.startsAt) === day && (!entity || (filterMode === "professional" ? item.professionalMembershipId === entity.id : item.boxId === entity.id)));
+    const showNow = day === today && nowMinutes >= startMinutes && nowMinutes <= endMinutes;
+    const professionalId = filterMode === "professional" ? entity?.id : selectedProfessionalId;
+    const laneKey = entity ? entity.id + "-" + day : day;
+    return <div className={"agenda-day-lane " + (day === today ? "is-today" : "")} key={laneKey} aria-label={"Agenda de " + (entity?.name ?? formatLongDate(day))}>
+      <div className="agenda-slot-grid">{slots.map((minutes) => {
+        const active = createAt?.dateKey === day && createAt.startMinutes === minutes && createAt.professionalId === professionalId;
+        const endsAt = defaultEndTime(minutes, blockDuration);
+        return <button className={"agenda-create-slot " + (active ? "is-active" : "")} type="button" key={minutes} onClick={() => openCreateSlot(day, minutes, professionalId)} aria-label={active ? "Abrir nueva cita a las " + timeFromMinutes(minutes) : "Seleccionar horario a las " + timeFromMinutes(minutes)}><span className="agenda-slot-plus" aria-hidden="true">+</span>{active ? <span className="agenda-agendar-chip">+ Agendar <small>{timeFromMinutes(minutes)} - {endsAt}</small></span> : null}</button>;
+      })}</div>
+      {entityAppointments.map(renderAppointment)}
+      {showNow ? <div className="agenda-now-line" style={{ top: ((nowMinutes - startMinutes) / 30) * halfHourHeight }} aria-label={"Hora actual " + formatTime(now.toISOString())}><span /></div> : null}
+    </div>;
+  }
+
+  const dialogProfessional = professionals.find((item) => item.id === createDialogAt?.professionalId) ?? selectedProfessional;
+  const periodLabel = period === "day" ? formatLongDate(date) : formatShortDate(monday) + " al " + formatShortDate(addLocalDays(monday, 6));
 
   return <section className="agenda-page" aria-labelledby="agenda-title">
     <header className="agenda-heading"><div><h1 id="agenda-title">Mi Calendario</h1><p className="muted">{formatLongDate(date)}</p></div><div className="agenda-controls">
       <div className="agenda-control-group"><span className="agenda-control-label">Vista por</span><div className="agenda-segmented" role="group" aria-label="Agrupar agenda por"><button type="button" className={filterMode === "professional" ? "is-active" : ""} aria-pressed={filterMode === "professional"} onClick={() => setFilterMode("professional")}>Profesional</button><button type="button" className={filterMode === "box" ? "is-active" : ""} aria-pressed={filterMode === "box"} onClick={() => setFilterMode("box")}>Box</button></div></div>
-      <label className="agenda-selector"><span className="sr-only">{filterMode === "professional" ? "Profesional" : "Box"}</span>{filterMode === "professional" && selectedProfessional ? <span className="agenda-avatar" aria-hidden="true">{initials(selectedProfessional.name)}</span> : null}<select value={filterMode === "professional" ? selectedProfessionalId : selectedBoxId} onChange={(event) => filterMode === "professional" ? setSelectedProfessionalId(event.target.value) : setSelectedBoxId(event.target.value)} disabled={filterMode === "professional" ? !professionals.length : !boxes.length}>{filterMode === "professional" ? professionals.map((item) => <option value={item.id} key={item.id}>{item.name}</option>) : boxes.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
-      <div className="agenda-segmented" role="group" aria-label="Periodo de agenda"><button type="button" className={view === "day" ? "is-active" : ""} aria-pressed={view === "day"} onClick={() => changeView("day")}>Día</button><button type="button" className={view === "week" ? "is-active" : ""} aria-pressed={view === "week"} onClick={() => changeView("week")}>Semana</button><button type="button" aria-disabled="true" disabled title="Próximamente">Global</button></div>
+      {filterMode === "professional" ? <label className="agenda-selector"><span className="sr-only">Profesional</span>{selectedProfessional ? <span className="agenda-avatar" aria-hidden="true">{initials(selectedProfessional.name)}</span> : null}<select value={selectedProfessionalId} onChange={(event) => setSelectedProfessionalId(event.target.value)} disabled={!professionals.length || view === "global"} title={view === "global" ? "En Global se muestran todos" : undefined}>{professionals.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label> : <div className="agenda-box-combobox"><label className="sr-only" htmlFor="agenda-box-search">Box</label><input id="agenda-box-search" type="text" role="combobox" aria-expanded={boxListOpen && view !== "global"} aria-controls="agenda-box-results" aria-autocomplete="list" value={view === "global" ? "Todos los boxes" : boxQuery} placeholder="Busca un box" disabled={view === "global" || !boxes.length} title={view === "global" ? "En Global se muestran todos" : undefined} onFocus={() => setBoxListOpen(true)} onChange={(event) => { setBoxQuery(event.target.value); setBoxListOpen(true); }} />{boxListOpen && view !== "global" ? <ul id="agenda-box-results" className="agenda-box-results" role="listbox">{filteredBoxes.length ? filteredBoxes.map((box) => <li key={box.id} role="option" aria-selected={box.id === selectedBoxId}><button type="button" onClick={() => chooseBox(box)}>{box.name}</button></li>) : <li className="agenda-box-empty">No hay boxes con ese nombre.</li>}</ul> : null}</div>}
+      <div className="agenda-segmented" role="group" aria-label="Periodo de agenda"><button type="button" className={view === "day" ? "is-active" : ""} aria-pressed={view === "day"} onClick={() => changeView("day")}>Día</button><button type="button" className={view === "week" ? "is-active" : ""} aria-pressed={view === "week"} onClick={() => changeView("week")}>Semana</button><button type="button" className={view === "global" ? "is-active" : ""} aria-pressed={view === "global"} onClick={() => changeView("global")}>Global</button></div>
       <label className="agenda-date-picker"><Icon name="calendar" /><span className="sr-only">Elegir fecha</span><input type="date" value={date} onChange={(event) => selectDate(event.target.value)} /></label>
-      <div className="agenda-navigation" aria-label="Navegar por fechas"><button type="button" aria-label={view === "day" ? "Día anterior" : "Semana anterior"} onClick={() => navigate(-1)}><Icon name="chevron-left" /></button><button type="button" onClick={() => selectDate(dateKeyAtSantiago(new Date().toISOString()))}>Hoy</button><button type="button" aria-label={view === "day" ? "Día siguiente" : "Semana siguiente"} onClick={() => navigate(1)}><Icon name="chevron-right" /></button></div>
+      <div className="agenda-navigation" aria-label="Navegar por fechas"><button type="button" aria-label={period === "day" ? "Día anterior" : "Semana anterior"} onClick={() => navigate(-1)}><Icon name="chevron-left" /></button><button type="button" onClick={() => selectDate(dateKeyAtSantiago(new Date().toISOString()))}>Hoy</button><button type="button" aria-label={period === "day" ? "Día siguiente" : "Semana siguiente"} onClick={() => navigate(1)}><Icon name="chevron-right" /></button></div>
     </div></header>
-    <div className="agenda-datebar"><Icon name="calendar" /><strong>{view === "day" ? formatLongDate(date) : `${formatShortDate(monday)} al ${formatShortDate(addLocalDays(monday, 6))}`}</strong>{isPending ? <span className="muted">Actualizando...</span> : null}</div>
+    <div className="agenda-datebar"><Icon name="calendar" /><strong>{periodLabel}</strong>{view === "global" ? <span className="agenda-global-summary">{filterMode === "professional" ? "Todos los profesionales" : "Todos los boxes"}</span> : null}{isPending ? <span className="muted">Actualizando...</span> : null}</div>
+    <aside className="agenda-legend" aria-labelledby="agenda-legend-title"><strong id="agenda-legend-title">Leyenda de Estados</strong><div className="agenda-legend-list">{[["is-agendada", "Agendada"], ["is-online", "Agendada Online"], ["is-confirmed", "Confirmada"], ["is-cancelled", "Cancelada"], ["is-missed", "No asistió"], ["is-block", "Bloqueado"]].map(([state, label]) => <span className="agenda-legend-item" key={state}><i className={"agenda-swatch " + state} aria-hidden="true" />{label}</span>)}</div></aside>
     {loadError ? <p className="agenda-error" role="alert">{loadError}</p> : null}
     {notice ? <p className="agenda-notice" role="status">{notice}</p> : null}
-    <div className="agenda-calendar-scroll"><div className={`agenda-calendar agenda-calendar--${view}`} style={{ "--agenda-slots": slots.length } as CSSProperties}>
-      <div className="agenda-corner" aria-hidden="true"><Icon name="clock" /></div>
-      {days.map((day) => <div className={`agenda-day-heading ${day === today ? "is-today" : ""}`} key={day}><span>{formatShortDate(day)}</span>{day === today ? <small>Hoy</small> : null}</div>)}
-      <div className="agenda-time-axis">{slots.map((minutes) => <div className="agenda-time-label" key={minutes}>{String(Math.floor(minutes / 60)).padStart(2, "0")}:{String(minutes % 60).padStart(2, "0")}</div>)}</div>
-      {days.map((day) => { const dayAppointments = visibleAppointments.filter((item) => dateKeyAtSantiago(item.startsAt) === day); const showNow = day === today && nowMinutes >= startMinutes && nowMinutes <= endMinutes; return <div className={`agenda-day-lane ${day === today ? "is-today" : ""}`} key={day} aria-label={`Agenda de ${formatLongDate(day)}`}>
-        <div className="agenda-slot-grid">{slots.map((minutes) => { const active = createAt?.dateKey === day && createAt.startMinutes === minutes; const endsAt = defaultEndTime(minutes, blockDuration); return <button className={`agenda-create-slot ${active ? "is-active" : ""}`} type="button" key={minutes} onClick={() => openCreateSlot(day, minutes)} aria-label={active ? `Abrir nueva cita a las ${timeFromMinutes(minutes)}` : `Seleccionar horario a las ${timeFromMinutes(minutes)}`}><span className="agenda-slot-plus" aria-hidden="true">+</span>{active ? <span className="agenda-agendar-chip">+ Agendar <small>{timeFromMinutes(minutes)} - {endsAt}</small></span> : null}</button>; })}</div>
-        {dayAppointments.map((appointment) => { const start = minutesAtSantiago(appointment.startsAt); const end = minutesAtSantiago(appointment.endsAt); const top = ((start - startMinutes) / 30) * halfHourHeight; const height = Math.max(halfHourHeight - 3, ((end - start) / 30) * halfHourHeight - 3); return <article className={`agenda-appointment ${appointment.kind === "block" ? "is-block" : ""} ${appointment.status === "pending" ? "is-pending" : ""}`} style={{ top, height }} key={appointment.id} title={appointment.notes ?? undefined}><strong>{appointment.kind === "block" ? "Bloque" : appointment.patientName}</strong><span>{formatTime(appointment.startsAt)} - {formatTime(appointment.endsAt)}</span>{appointment.sessionTypeName ? <small>{appointment.sessionTypeName}</small> : <small>{appointment.kind === "block" ? "No disponible" : appointment.status === "confirmed" ? "Confirmada" : "Pendiente"}</small>}</article>; })}
-        {showNow ? <div className="agenda-now-line" style={{ top: ((nowMinutes - startMinutes) / 30) * halfHourHeight }} aria-label={`Hora actual ${formatTime(now.toISOString())}`}><span /></div> : null}
-      </div>; })}
-    </div></div>
-    {!isPending && visibleAppointments.filter((item) => days.includes(dateKeyAtSantiago(item.startsAt))).length === 0 ? <div className="agenda-empty"><Icon name="calendar" /><div><strong>Sin citas</strong><p>No hay citas programadas para este rango y selección.</p></div><button type="button" onClick={() => view === "day" ? changeView("week") : selectDate(today)}>{view === "day" ? "Ver semana" : "Volver a hoy"}</button></div> : null}
-    {createDialogAt && selectedProfessional ? <AgendaCreateDialog key={`${createDialogAt.dateKey}-${createDialogAt.startMinutes}-${selectedProfessional.id}`} createAt={createDialogAt} professional={selectedProfessional} boxes={boxes} patients={patients} convenios={convenios} sessionTypes={sessionTypes} blockDuration={blockDuration} onClose={() => setCreateDialogAt(null)} onCreated={createdAppointment} /> : null}
+    <div className={"agenda-calendar-scroll " + (view === "global" ? "global-grid" : "")}>
+      {view === "global" ? period === "day" ? <div className="agenda-global-day" style={{ "--agenda-slots": slots.length, "--agenda-entities": laneEntities.length } as CSSProperties}>
+        <div className="agenda-corner" aria-hidden="true"><Icon name="clock" /></div>
+        {laneEntities.map((entity) => <div className="agenda-day-heading is-lane-heading" key={entity.id}>{filterMode === "professional" ? <span className="agenda-avatar" aria-hidden="true">{initials(entity.name)}</span> : null}<span>{entity.name}</span></div>)}
+        <div className="agenda-time-axis">{slots.map((minutes) => <div className="agenda-time-label" key={minutes}>{timeFromMinutes(minutes)}</div>)}</div>
+        {laneEntities.map((entity) => renderLane(date, entity))}
+      </div> : <div className="agenda-global-matrix" style={{ "--agenda-slots": slots.length, "--agenda-days": days.length } as CSSProperties}>
+          <div className="agenda-corner agenda-global-corner" aria-hidden="true"><Icon name="clock" /></div>
+          {days.map((day) => <div className={"agenda-day-heading " + (day === today ? "is-today" : "")} key={day}><span>{formatShortDate(day)}</span>{day === today ? <small>Hoy</small> : null}</div>)}
+          {laneEntities.map((entity) => <div className="agenda-global-row" key={entity.id}>
+            <div className="agenda-lane-label" title={entity.name}>{filterMode === "professional" ? <span className="agenda-avatar" aria-hidden="true">{initials(entity.name)}</span> : null}<strong>{entity.name}</strong></div>
+            <div className="agenda-time-axis">{slots.map((minutes) => <div className="agenda-time-label" key={minutes}>{timeFromMinutes(minutes)}</div>)}</div>
+            {days.map((day) => renderLane(day, entity))}
+          </div>)}
+        </div> : <div className={"agenda-calendar agenda-calendar--" + view} style={{ "--agenda-slots": slots.length } as CSSProperties}>
+        <div className="agenda-corner" aria-hidden="true"><Icon name="clock" /></div>
+        {days.map((day) => <div className={"agenda-day-heading " + (day === today ? "is-today" : "")} key={day}><span>{formatShortDate(day)}</span>{day === today ? <small>Hoy</small> : null}</div>)}
+        <div className="agenda-time-axis">{slots.map((minutes) => <div className="agenda-time-label" key={minutes}>{timeFromMinutes(minutes)}</div>)}</div>
+        {days.map((day) => renderLane(day))}
+      </div>}
+    </div>
+    {!isPending && visibleAppointments.filter((item) => days.includes(dateKeyAtSantiago(item.startsAt))).length === 0 ? <div className="agenda-empty"><Icon name="calendar" /><div><strong>Sin citas</strong><p>No hay citas programadas para este rango y selección.</p></div><button type="button" onClick={() => period === "day" ? changeView("week") : selectDate(today)}>{period === "day" ? "Ver semana" : "Volver a hoy"}</button></div> : null}
+    {createDialogAt && dialogProfessional ? <AgendaCreateDialog key={createDialogAt.dateKey + "-" + createDialogAt.startMinutes + "-" + dialogProfessional.id} createAt={createDialogAt} professional={dialogProfessional} boxes={boxes} patients={patients} convenios={convenios} sessionTypes={sessionTypes} blockDuration={blockDuration} onClose={() => setCreateDialogAt(null)} onCreated={createdAppointment} /> : null}
   </section>;
 }
 
