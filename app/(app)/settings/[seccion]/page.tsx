@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 export const SETTINGS_PLACEHOLDERS: Record<string, { title: string; description: string }> = {
   plan: { title: "Plan", description: "Suscripción, cobros y medios de pago de tu espacio." },
   usuarios: { title: "Usuarios", description: "Quiénes acceden a la clínica." },
-  bloqueos: { title: "Bloqueos", description: "Bloqueos de agenda por profesional, box o fecha." },
   "agenda-online": { title: "Agenda Online", description: "Configuración del agendamiento público por enlace." },
   box: { title: "Box", description: "Sillones y boxes de atención de la clínica." },
   plantillas: { title: "Plantillas", description: "Plantillas de evoluciones y documentos clínicos." },
