@@ -5,7 +5,6 @@ export const SETTINGS_PLACEHOLDERS: Record<string, { title: string; description:
   usuarios: { title: "Usuarios", description: "Quiénes acceden a la clínica." },
   bloqueos: { title: "Bloqueos", description: "Bloqueos de agenda por profesional, box o fecha." },
   "agenda-online": { title: "Agenda Online", description: "Configuración del agendamiento público por enlace." },
-  "tipos-sesion": { title: "Tipos de Sesión", description: "Duración y configuración de los tipos de atención." },
   box: { title: "Box", description: "Sillones y boxes de atención de la clínica." },
   plantillas: { title: "Plantillas", description: "Plantillas de evoluciones y documentos clínicos." },
   nomenclatura: { title: "Nomenclatura", description: "Catálogo de prestaciones y nomenclatura clínica." },

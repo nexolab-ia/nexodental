@@ -12,6 +12,7 @@ type Availability = { weekday: Weekday; startsAt: string; endsAt: string };
 type Professional = { id: string; name: string; availability: Availability[] };
 type Box = { id: string; name: string };
 type Patient = { id: string; name: string; email: string | null; phone: string | null };
+type SessionType = { id: string; name: string; durationMinutes: number; isDefault: boolean };
 type CreateAt = { dateKey: string; startMinutes: number };
 
 const halfHourHeight = 42;
@@ -34,7 +35,7 @@ function timeFromMinutes(minutes: number): string { return `${String(Math.floor(
 function defaultEndTime(startMinutes: number, duration: number): string { return timeFromMinutes(Math.min(startMinutes + Math.max(duration, 1), 23 * 60 + 59)); }
 function message(cause: unknown, fallback: string): string { return cause instanceof Error && cause.message ? cause.message : fallback; }
 
-export function AgendaClient({ professionals, boxes, patients, blockDuration, initialAppointments, initialDate }: { professionals: Professional[]; boxes: Box[]; patients: Patient[]; blockDuration: number; initialAppointments: AgendaAppointment[]; initialDate: string }) {
+export function AgendaClient({ professionals, boxes, patients, sessionTypes, blockDuration, initialAppointments, initialDate }: { professionals: Professional[]; boxes: Box[]; patients: Patient[]; sessionTypes: SessionType[]; blockDuration: number; initialAppointments: AgendaAppointment[]; initialDate: string }) {
   const [view, setView] = useState<View>("day"); const [date, setDate] = useState(initialDate); const [filterMode, setFilterMode] = useState<FilterMode>("professional");
   const [selectedProfessionalId, setSelectedProfessionalId] = useState(professionals[0]?.id ?? ""); const [selectedBoxId, setSelectedBoxId] = useState(boxes[0]?.id ?? "");
   const [appointments, setAppointments] = useState(initialAppointments); const [now, setNow] = useState(() => new Date()); const [loadError, setLoadError] = useState(""); const [notice, setNotice] = useState("");
@@ -90,38 +91,47 @@ export function AgendaClient({ professionals, boxes, patients, blockDuration, in
       <div className="agenda-time-axis">{slots.map((minutes) => <div className="agenda-time-label" key={minutes}>{String(Math.floor(minutes / 60)).padStart(2, "0")}:{String(minutes % 60).padStart(2, "0")}</div>)}</div>
       {days.map((day) => { const dayAppointments = visibleAppointments.filter((item) => dateKeyAtSantiago(item.startsAt) === day); const showNow = day === today && nowMinutes >= startMinutes && nowMinutes <= endMinutes; return <div className={`agenda-day-lane ${day === today ? "is-today" : ""}`} key={day} aria-label={`Agenda de ${formatLongDate(day)}`}>
         <div className="agenda-slot-grid">{slots.map((minutes) => { const active = createAt?.dateKey === day && createAt.startMinutes === minutes; const endsAt = defaultEndTime(minutes, blockDuration); return <button className={`agenda-create-slot ${active ? "is-active" : ""}`} type="button" key={minutes} onClick={() => openCreateSlot(day, minutes)} aria-label={active ? `Abrir nueva cita a las ${timeFromMinutes(minutes)}` : `Seleccionar horario a las ${timeFromMinutes(minutes)}`}><span className="agenda-slot-plus" aria-hidden="true">+</span>{active ? <span className="agenda-agendar-chip">+ Agendar <small>{timeFromMinutes(minutes)} - {endsAt}</small></span> : null}</button>; })}</div>
-        {dayAppointments.map((appointment) => { const start = minutesAtSantiago(appointment.startsAt); const end = minutesAtSantiago(appointment.endsAt); const top = ((start - startMinutes) / 30) * halfHourHeight; const height = Math.max(halfHourHeight - 3, ((end - start) / 30) * halfHourHeight - 3); return <article className={`agenda-appointment ${appointment.kind === "block" ? "is-block" : ""} ${appointment.status === "pending" ? "is-pending" : ""}`} style={{ top, height }} key={appointment.id} title={appointment.notes ?? undefined}><strong>{appointment.kind === "block" ? "Bloque" : appointment.patientName}</strong><span>{formatTime(appointment.startsAt)} - {formatTime(appointment.endsAt)}</span><small>{appointment.kind === "block" ? "No disponible" : appointment.status === "confirmed" ? "Confirmada" : "Pendiente"}</small></article>; })}
+        {dayAppointments.map((appointment) => { const start = minutesAtSantiago(appointment.startsAt); const end = minutesAtSantiago(appointment.endsAt); const top = ((start - startMinutes) / 30) * halfHourHeight; const height = Math.max(halfHourHeight - 3, ((end - start) / 30) * halfHourHeight - 3); return <article className={`agenda-appointment ${appointment.kind === "block" ? "is-block" : ""} ${appointment.status === "pending" ? "is-pending" : ""}`} style={{ top, height }} key={appointment.id} title={appointment.notes ?? undefined}><strong>{appointment.kind === "block" ? "Bloque" : appointment.patientName}</strong><span>{formatTime(appointment.startsAt)} - {formatTime(appointment.endsAt)}</span>{appointment.sessionTypeName ? <small>{appointment.sessionTypeName}</small> : <small>{appointment.kind === "block" ? "No disponible" : appointment.status === "confirmed" ? "Confirmada" : "Pendiente"}</small>}</article>; })}
         {showNow ? <div className="agenda-now-line" style={{ top: ((nowMinutes - startMinutes) / 30) * halfHourHeight }} aria-label={`Hora actual ${formatTime(now.toISOString())}`}><span /></div> : null}
       </div>; })}
     </div></div>
     {!isPending && visibleAppointments.filter((item) => days.includes(dateKeyAtSantiago(item.startsAt))).length === 0 ? <div className="agenda-empty"><Icon name="calendar" /><div><strong>Sin citas</strong><p>No hay citas programadas para este rango y selección.</p></div><button type="button" onClick={() => view === "day" ? changeView("week") : selectDate(today)}>{view === "day" ? "Ver semana" : "Volver a hoy"}</button></div> : null}
-    {createDialogAt && selectedProfessional ? <AgendaCreateDialog key={`${createDialogAt.dateKey}-${createDialogAt.startMinutes}-${selectedProfessional.id}`} createAt={createDialogAt} professional={selectedProfessional} boxes={boxes} patients={patients} blockDuration={blockDuration} onClose={() => setCreateDialogAt(null)} onCreated={createdAppointment} /> : null}
+    {createDialogAt && selectedProfessional ? <AgendaCreateDialog key={`${createDialogAt.dateKey}-${createDialogAt.startMinutes}-${selectedProfessional.id}`} createAt={createDialogAt} professional={selectedProfessional} boxes={boxes} patients={patients} sessionTypes={sessionTypes} blockDuration={blockDuration} onClose={() => setCreateDialogAt(null)} onCreated={createdAppointment} /> : null}
   </section>;
 }
 
-function AgendaCreateDialog({ createAt, professional, boxes, patients, blockDuration, onClose, onCreated }: { createAt: CreateAt; professional: Professional; boxes: Box[]; patients: Patient[]; blockDuration: number; onClose: () => void; onCreated: () => Promise<void> }) {
+const durationGroups = [
+  { label: "Cortas", values: [15, 30, 45] },
+  { label: "Estándar", values: [60, 90, 120] },
+  { label: "Largas", values: [135, 180, 240] },
+];
+function durationLabel(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60); const remainder = minutes % 60;
+  return remainder ? `${hours} h ${remainder} min` : `${hours} h`;
+}
+
+function AgendaCreateDialog({ createAt, professional, boxes, patients, sessionTypes, blockDuration, onClose, onCreated }: { createAt: CreateAt; professional: Professional; boxes: Box[]; patients: Patient[]; sessionTypes: SessionType[]; blockDuration: number; onClose: () => void; onCreated: () => Promise<void> }) {
   const dialogRef = useRef<HTMLDialogElement>(null); const titleRef = useRef<HTMLHeadingElement>(null);
-  const [patientName, setPatientName] = useState(""); const [patientId, setPatientId] = useState<string | null>(null); const [patientContact, setPatientContact] = useState<string | null>(null); const [boxId, setBoxId] = useState(""); const [notes, setNotes] = useState(""); const [startsAt, setStartsAt] = useState(() => timeFromMinutes(createAt.startMinutes)); const [endsAt, setEndsAt] = useState(() => defaultEndTime(createAt.startMinutes, blockDuration)); const [error, setError] = useState(""); const [isCreating, setIsCreating] = useState(false);
+  const defaultType = sessionTypes.find((item) => item.isDefault) ?? null;
+  const initialDuration = defaultType?.durationMinutes ?? (durationGroups.flatMap((group) => group.values).includes(blockDuration) ? blockDuration : 30);
+  const [patientName, setPatientName] = useState(""); const [patientId, setPatientId] = useState<string | null>(null); const [patientContact, setPatientContact] = useState<string | null>(null); const [boxId, setBoxId] = useState(""); const [sessionTypeId, setSessionTypeId] = useState(defaultType?.id ?? ""); const [duration, setDuration] = useState(initialDuration); const [notes, setNotes] = useState(""); const [error, setError] = useState(""); const [isCreating, setIsCreating] = useState(false);
+  const startsAt = timeFromMinutes(createAt.startMinutes); const endsAt = timeFromMinutes(createAt.startMinutes + duration);
+  const selectedBox = boxes.find((item) => item.id === boxId); const selectedType = sessionTypes.find((item) => item.id === sessionTypeId);
   const matches = useMemo(() => { const query = patientName.trim().toLocaleLowerCase("es-CL"); if (!query) return []; return patients.filter((patient) => `${patient.name} ${patient.email ?? ""}`.toLocaleLowerCase("es-CL").includes(query)).slice(0, 6); }, [patientName, patients]);
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (!dialog.open) dialog.showModal();
-    requestAnimationFrame(() => titleRef.current?.focus());
-  }, []);
-
+  useEffect(() => { const dialog = dialogRef.current; if (!dialog) return; if (!dialog.open) dialog.showModal(); requestAnimationFrame(() => titleRef.current?.focus()); }, []);
   function choosePatient(patient: Patient) { setPatientName(patient.name); setPatientId(patient.id); setPatientContact(patient.phone ?? patient.email); }
   function changePatientName(value: string) { setPatientName(value); const exact = patients.find((patient) => patient.name.toLocaleLowerCase("es-CL") === value.trim().toLocaleLowerCase("es-CL")); if (exact) choosePatient(exact); else { setPatientId(null); setPatientContact(null); } }
+  function changeSessionType(id: string) { setSessionTypeId(id); const type = sessionTypes.find((item) => item.id === id); if (type) setDuration(type.durationMinutes); }
   function close() { if (!isCreating) onClose(); }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!patientName.trim()) { setError("Ingresa o selecciona una persona paciente."); return; }
-    if (!startsAt || !endsAt || startsAt >= endsAt) { setError("La hora de término debe ser posterior a la hora de inicio."); return; }
     setError(""); setIsCreating(true);
     try {
       const day = new Date(`${createAt.dateKey}T12:00:00.000Z`);
-      await createAgendaAppointment({ professionalMembershipId: professional.id, boxId: boxId || null, patientId, patientName: patientName.trim(), patientContact, startsAtIso: santiagoLocalToUtc(day, startsAt).toISOString(), endsAtIso: santiagoLocalToUtc(day, endsAt).toISOString(), notes: notes.trim() || null });
+      await createAgendaAppointment({ professionalMembershipId: professional.id, boxId: boxId || null, sessionTypeId: sessionTypeId || null, patientId, patientName: patientName.trim(), patientContact, startsAtIso: santiagoLocalToUtc(day, startsAt).toISOString(), endsAtIso: santiagoLocalToUtc(day, endsAt).toISOString(), notes: notes.trim() || null });
       await onCreated();
     } catch (cause) { setError(message(cause, "No pudimos guardar la cita. Intenta nuevamente.")); }
     finally { setIsCreating(false); }
@@ -129,16 +139,20 @@ function AgendaCreateDialog({ createAt, professional, boxes, patients, blockDura
 
   return <dialog className="agenda-appointment-dialog" ref={dialogRef} aria-labelledby="agenda-create-title" onCancel={(event) => { if (isCreating) event.preventDefault(); else close(); }} onClose={onClose}>
     <form className="agenda-appointment-form" onSubmit={submit}>
-      <header className="agenda-appointment-dialog-header"><div><h2 id="agenda-create-title" ref={titleRef} tabIndex={-1}>Nueva cita</h2><p>{createAt ? formatLongDate(createAt.dateKey) : ""}</p></div><button className="icon-button" type="button" aria-label="Cerrar nueva cita" onClick={close} disabled={isCreating}><CloseIcon /></button></header>
-      <div className="agenda-appointment-dialog-content">
-        <label className="agenda-patient-field">Paciente<input type="text" value={patientName} onChange={(event) => changePatientName(event.target.value)} autoComplete="off" placeholder="Busca por nombre o correo" aria-autocomplete="list" aria-controls="agenda-patient-results" disabled={isCreating} required />{matches.length && !patientId ? <ul className="agenda-patient-suggestions" id="agenda-patient-results" role="listbox">{matches.map((patient) => <li key={patient.id}><button type="button" onClick={() => choosePatient(patient)} disabled={isCreating}><strong>{patient.name}</strong><span>{patient.email ?? patient.phone ?? "Sin datos de contacto"}</span></button></li>)}</ul> : null}<small>Puedes escribir un nombre para una persona paciente nueva.</small></label>
-        <div className="agenda-professional-summary"><span className="agenda-avatar" aria-hidden="true">{professional ? initials(professional.name) : ""}</span><div><span>Profesional</span><strong>{professional?.name}</strong></div></div>
-        <div className="agenda-time-fields"><label>Hora de inicio<input type="time" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} disabled={isCreating} required /></label><label>Hora de término<input type="time" value={endsAt} onChange={(event) => setEndsAt(event.target.value)} disabled={isCreating} required /></label></div>
-        <label>Box<select value={boxId} onChange={(event) => setBoxId(event.target.value)} disabled={isCreating}><option value="">Sin box</option>{boxes.map((box) => <option value={box.id} key={box.id}>{box.name}</option>)}</select></label>
-        <label>Notas (opcional)<textarea value={notes} onChange={(event) => setNotes(event.target.value)} disabled={isCreating} maxLength={2000} placeholder="Agrega información relevante para la cita" /></label>
-        {error ? <p className="agenda-dialog-error" role="alert">{error}</p> : null}
+      <header className="agenda-appointment-dialog-header"><div><h2 id="agenda-create-title" ref={titleRef} tabIndex={-1}>Nueva cita</h2><p>{formatLongDate(createAt.dateKey)}</p></div><button className="icon-button" type="button" aria-label="Cerrar nueva cita" onClick={close} disabled={isCreating}><CloseIcon /></button></header>
+      <div className="agenda-appointment-dialog-content agenda-dialog-body">
+        <div className="agenda-dialog-fields">
+          <div className="agenda-professional-summary"><span className="agenda-avatar" aria-hidden="true">{initials(professional.name)}</span><div><span>Profesional</span><strong>{professional.name}</strong></div></div>
+          <label className="agenda-patient-field">Paciente<input type="text" value={patientName} onChange={(event) => changePatientName(event.target.value)} autoComplete="off" placeholder="Busca por nombre o correo" aria-autocomplete="list" aria-controls="agenda-patient-results" disabled={isCreating} required />{matches.length && !patientId ? <ul className="agenda-patient-suggestions" id="agenda-patient-results" role="listbox">{matches.map((patient) => <li key={patient.id}><button type="button" onClick={() => choosePatient(patient)} disabled={isCreating}><strong>{patient.name}</strong><span>{patient.email ?? patient.phone ?? "Sin datos de contacto"}</span></button></li>)}</ul> : null}<small>Puedes escribir un nombre para una persona paciente nueva.</small></label>
+          <label>Tipo de sesión<select className="agenda-session-type-select" value={sessionTypeId} onChange={(event) => changeSessionType(event.target.value)} disabled={isCreating}><option value="">Sin tipo específico</option>{sessionTypes.map((type) => <option value={type.id} key={type.id}>{type.name} · {type.durationMinutes} min</option>)}</select></label>
+          <label>Sala / Box<select value={boxId} onChange={(event) => setBoxId(event.target.value)} disabled={isCreating}><option value="">Sin box</option>{boxes.map((box) => <option value={box.id} key={box.id}>{box.name} · Activo</option>)}</select><small className="agenda-box-state"><span/>Los boxes disponibles están activos</small></label>
+          <label>Duración<select className="agenda-duration-select" value={duration} onChange={(event) => setDuration(Number(event.target.value))} disabled={isCreating}>{!durationGroups.flatMap((group) => group.values).includes(duration) ? <option value={duration}>{durationLabel(duration)} · Finaliza {timeFromMinutes(createAt.startMinutes + duration)}</option> : null}{durationGroups.map((group) => <optgroup label={group.label} key={group.label}>{group.values.map((minutes) => <option value={minutes} key={minutes}>{durationLabel(minutes)} · Finaliza {timeFromMinutes(createAt.startMinutes + minutes)}</option>)}</optgroup>)}</select></label>
+          <label>Notas (opcional)<textarea value={notes} onChange={(event) => setNotes(event.target.value)} disabled={isCreating} maxLength={2000} placeholder="Agrega información relevante para la cita" /></label>
+        </div>
+        <aside className="agenda-dialog-summary" aria-live="polite"><h3>Resumen de cita</h3><dl><div><dt>Horario</dt><dd>{startsAt} - {endsAt} · {durationLabel(duration)}</dd></div><div><dt>Profesional</dt><dd>{professional.name}</dd></div><div><dt>Sala / Box</dt><dd>{selectedBox?.name ?? "Sin box"}</dd></div><div><dt>Tipo de sesión</dt><dd>{selectedType?.name ?? "Sin tipo específico"}</dd></div></dl></aside>
+        {error ? <p className="agenda-dialog-error agenda-dialog-error--wide" role="alert">{error}</p> : null}
       </div>
-      <footer className="agenda-appointment-dialog-footer"><button className="button" type="button" onClick={close} disabled={isCreating}>Cancelar</button><button className="button button-primary" type="submit" disabled={isCreating}>{isCreating ? "Guardando..." : "Guardar cita"}</button></footer>
+      <footer className="agenda-appointment-dialog-footer"><button className="button" type="button" onClick={close} disabled={isCreating}>Cancelar</button><button className="button button-primary" type="submit" disabled={isCreating}>{isCreating ? "Creando..." : "Crear cita"}</button></footer>
     </form>
   </dialog>;
 }

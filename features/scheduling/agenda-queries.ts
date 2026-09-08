@@ -5,6 +5,7 @@ import { runAsTenant, type TenantContext } from "@/lib/tenancy";
 
 export type AgendaAppointment = {
   id: string; siteId: string | null; professionalMembershipId: string; boxId: string | null;
+  sessionTypeId: string | null; sessionTypeName: string | null;
   kind: "appointment" | "block"; status: "pending" | "confirmed"; patientName: string;
   patientContact: string | null; startsAt: string; endsAt: string; notes: string | null;
 };
@@ -19,14 +20,15 @@ export async function loadAgendaAppointments(actor: TenantContext, startsAtIso: 
   }
 
   const rows = await runAsTenant(sql, actor, (tx) => tx<AppointmentRow[]>`
-    SELECT id, site_id AS "siteId", professional_membership_id AS "professionalMembershipId",
-      box_id AS "boxId", kind::text AS kind, status::text AS status,
-      patient_name AS "patientName", patient_contact AS "patientContact",
-      starts_at::text AS "startsAt", ends_at::text AS "endsAt", notes
-    FROM appointments
-    WHERE organization_id = ${actor.organizationId} AND status <> 'cancelled'
-      AND starts_at >= ${startsAtIso}::timestamptz AND starts_at < ${endsAtIso}::timestamptz
-    ORDER BY starts_at ASC
+    SELECT a.id, a.site_id AS "siteId", a.professional_membership_id AS "professionalMembershipId",
+      a.box_id AS "boxId", a.session_type_id AS "sessionTypeId", st.name AS "sessionTypeName", a.kind::text AS kind, a.status::text AS status,
+      a.patient_name AS "patientName", a.patient_contact AS "patientContact",
+      a.starts_at::text AS "startsAt", a.ends_at::text AS "endsAt", a.notes
+    FROM appointments a
+    LEFT JOIN session_types st ON st.id = a.session_type_id AND st.organization_id = a.organization_id
+    WHERE a.organization_id = ${actor.organizationId} AND a.status <> 'cancelled'
+      AND a.starts_at >= ${startsAtIso}::timestamptz AND a.starts_at < ${endsAtIso}::timestamptz
+    ORDER BY a.starts_at ASC
   `);
 
   return rows.map((row) => ({

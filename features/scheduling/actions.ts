@@ -4,7 +4,7 @@ import type { TenantContext } from "@/lib/tenancy";
 import { assertInterval, assertSantiagoTimezone, isWithinHours, localWeekday, localTime, SchedulingConflictError, SchedulingValidationError, type AppointmentStatus, type Weekday } from "./domain";
 import {scheduleConfiguredAppointmentNotice} from "@/features/notifications/integration";
 
-export type AppointmentInput = { organizationId: string; siteId?: string | null; professionalMembershipId: string; boxId?: string | null; patientName: string; patientContact?: string | null; startsAt: Date; endsAt: Date; status?: AppointmentStatus; source?: "internal" | "public"; notes?: string | null };
+export type AppointmentInput = { organizationId: string; siteId?: string | null; professionalMembershipId: string; boxId?: string | null; sessionTypeId?: string | null; patientName: string; patientContact?: string | null; startsAt: Date; endsAt: Date; status?: AppointmentStatus; source?: "internal" | "public"; notes?: string | null };
 type HourRow = { weekday: Weekday; startsAt: string; endsAt: string };
 type SchedulingSql = Sql | TransactionSql;
 
@@ -28,7 +28,7 @@ export async function createAppointment(sql: SchedulingSql, actor: TenantContext
   const hours = await availability(sql, input);
   if (!isWithinHours(input.startsAt, input.endsAt, hours)) throw new SchedulingValidationError("Ese horario está fuera de la disponibilidad configurada.");
   try {
-    const rows = await sql<{ id: string }[]>`INSERT INTO appointments (organization_id, site_id, professional_membership_id, box_id, patient_name, patient_contact, starts_at, ends_at, status, source, notes) VALUES (${input.organizationId}, ${input.siteId ?? null}, ${input.professionalMembershipId}, ${input.boxId ?? null}, ${input.patientName.trim()}, ${input.patientContact?.trim() || null}, ${input.startsAt.toISOString()}::timestamptz, ${input.endsAt.toISOString()}::timestamptz, ${input.status ?? "confirmed"}, ${input.source ?? "internal"}, ${input.notes ?? null}) RETURNING id`;
+    const rows = await sql<{ id: string }[]>`INSERT INTO appointments (organization_id, site_id, professional_membership_id, box_id, session_type_id, patient_name, patient_contact, starts_at, ends_at, status, source, notes) VALUES (${input.organizationId}, ${input.siteId ?? null}, ${input.professionalMembershipId}, ${input.boxId ?? null}, ${input.sessionTypeId ?? null}, ${input.patientName.trim()}, ${input.patientContact?.trim() || null}, ${input.startsAt.toISOString()}::timestamptz, ${input.endsAt.toISOString()}::timestamptz, ${input.status ?? "confirmed"}, ${input.source ?? "internal"}, ${input.notes ?? null}) RETURNING id`;
     const id = rows[0]?.id; if (!id) throw new Error("No se pudo crear la cita.");
     await sql`INSERT INTO appointment_history (organization_id, appointment_id, actor_membership_id, action, after) VALUES (${input.organizationId}, ${id}, ${actor.membershipId}, 'created', ${JSON.stringify({ startsAt: input.startsAt.toISOString(), endsAt: input.endsAt.toISOString() as string})}::jsonb)`;
     await scheduleConfiguredAppointmentNotice(sql,actor,id,"booking");

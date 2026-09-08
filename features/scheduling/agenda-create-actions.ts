@@ -9,6 +9,7 @@ import { SchedulingValidationError } from "./domain";
 export type CreateAgendaAppointmentInput = {
   professionalMembershipId: string;
   boxId?: string | null;
+  sessionTypeId?: string | null;
   patientId?: string | null;
   patientName: string;
   patientContact?: string | null;
@@ -35,11 +36,17 @@ export async function createAgendaAppointment(input: CreateAgendaAppointmentInpu
       const patient = (await tx<{ id: string }[]>`SELECT id FROM patients WHERE id = ${patientId} AND organization_id = ${actor.organizationId}`)[0];
       if (!patient) throw new SchedulingValidationError("La persona paciente seleccionada ya no está disponible.");
     }
+    const sessionTypeId = input.sessionTypeId?.trim() || null;
+    if (sessionTypeId) {
+      const sessionType = (await tx<{ id: string }[]>`SELECT id FROM session_types WHERE id = ${sessionTypeId} AND organization_id = ${actor.organizationId} AND active`)[0];
+      if (!sessionType) throw new SchedulingValidationError("El tipo de sesión seleccionado ya no está disponible.");
+    }
     return createAppointment(tx, actor, {
       organizationId: actor.organizationId,
       siteId: input.siteId ?? null,
       professionalMembershipId: input.professionalMembershipId,
       boxId: input.boxId ?? null,
+      sessionTypeId,
       patientName: input.patientName,
       patientContact: input.patientContact ?? null,
       startsAt,
