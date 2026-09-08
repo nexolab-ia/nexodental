@@ -2156,7 +2156,9 @@ textarea[aria-invalid="true"] {
 .agenda-datebar { display: flex; min-height: 46px; align-items: center; gap: 0.55rem; padding: 0.65rem 0.8rem; border-block: 1px solid var(--border); color: var(--ink); font-size: 0.83rem; }
 .agenda-datebar svg { color: var(--accent); }
 .agenda-datebar .muted { margin-inline-start: auto; font-size: 0.75rem; }
-.agenda-error { margin: 0; padding: 0.7rem 0.85rem; border: 1px solid color-mix(in srgb, var(--danger) 50%, var(--border)); border-radius: 8px; color: var(--danger); }
+.agenda-error, .agenda-notice { margin: 0; padding: 0.7rem 0.85rem; border-radius: 8px; }
+.agenda-error { border: 1px solid color-mix(in srgb, var(--danger) 50%, var(--border)); color: var(--danger); }
+.agenda-notice { border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border)); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); color: var(--accent); }
 .agenda-calendar-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
 .agenda-calendar { display: grid; grid-template-columns: 84px minmax(550px, 1fr); min-width: 650px; }
 .agenda-calendar--week { grid-template-columns: 84px repeat(7, minmax(145px, 1fr)); min-width: 1100px; }
@@ -2169,9 +2171,17 @@ textarea[aria-invalid="true"] {
 .agenda-time-label { padding: 0.35rem 0.65rem 0; border-block-start: 1px solid var(--border); color: var(--muted); font-family: var(--font-mono); font-size: 0.67rem; text-align: end; font-variant-numeric: tabular-nums; }
 .agenda-day-lane { position: relative; height: calc(var(--agenda-slots) * 42px); border-inline-start: 1px solid var(--border); background: var(--surface); }
 .agenda-day-lane.is-today { background: color-mix(in srgb, var(--accent) 2.5%, var(--surface)); }
-.agenda-slot-grid { position: absolute; inset: 0; display: grid; grid-template-rows: repeat(var(--agenda-slots), 42px); }
-.agenda-slot-grid span { border-block-start: 1px solid color-mix(in srgb, var(--border) 70%, transparent); }
-.agenda-slot-grid span:nth-child(even) { border-block-start-style: dashed; opacity: 0.72; }
+.agenda-slot-grid { position: absolute; z-index: 1; inset: 0; display: grid; grid-template-rows: repeat(var(--agenda-slots), 42px); }
+.agenda-create-slot { position: relative; display: grid; min-height: 42px; place-items: center; padding: 0; border: 0; border-block-start: 1px solid color-mix(in srgb, var(--border) 70%, transparent); border-radius: 0; background: transparent; color: var(--accent); cursor: pointer; }
+.agenda-create-slot:nth-child(even) { border-block-start-style: dashed; }
+.agenda-create-slot:hover, .agenda-create-slot:focus-visible, .agenda-create-slot.is-active { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.agenda-create-slot:active { transform: scale(0.98); }
+.agenda-create-slot:focus-visible { z-index: 3; outline: 2px solid var(--accent); outline-offset: -2px; }
+.agenda-slot-plus { opacity: 0; font-size: 1rem; font-weight: 700; line-height: 1; transition: opacity 160ms ease-out; }
+.agenda-create-slot:hover .agenda-slot-plus, .agenda-create-slot:focus-visible .agenda-slot-plus { opacity: 0.7; }
+.agenda-create-slot.is-active .agenda-slot-plus { display: none; }
+.agenda-agendar-chip { display: inline-flex; align-items: center; gap: 0.35rem; max-width: calc(100% - 0.65rem); min-height: 28px; padding: 0.25rem 0.45rem; border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border)); border-radius: 6px; background: color-mix(in srgb, var(--accent) 15%, var(--surface-2)); color: var(--accent); font-size: 0.68rem; font-weight: 800; white-space: nowrap; }
+.agenda-agendar-chip small { font-family: var(--font-mono); font-size: 0.61rem; font-variant-numeric: tabular-nums; }
 .agenda-appointment { position: absolute; z-index: 2; inset-inline: 5px; display: grid; align-content: start; gap: 0.1rem; overflow: hidden; padding: 0.45rem 0.55rem; border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border)); border-inline-start: 3px solid var(--accent); border-radius: 7px; background: color-mix(in srgb, var(--accent) 13%, var(--surface-2)); color: var(--ink); font-size: 0.72rem; }
 .agenda-appointment strong { overflow: hidden; font-size: 0.76rem; text-overflow: ellipsis; white-space: nowrap; }
 .agenda-appointment span { font-family: var(--font-mono); font-size: 0.66rem; font-variant-numeric: tabular-nums; }
@@ -2187,5 +2197,35 @@ textarea[aria-invalid="true"] {
 .agenda-empty button { min-height: 42px; margin-inline-start: auto; padding: 0.45rem 0.8rem; border-color: var(--accent); background: transparent; color: var(--accent); font-weight: 700; white-space: nowrap; }
 .agenda-empty button:hover { background: var(--accent); color: var(--bg); }
 .agenda-empty button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.agenda-appointment-dialog { width: min(32rem, calc(100vw - 2rem)); max-height: min(44rem, calc(100dvh - 2rem)); margin: auto; padding: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.agenda-appointment-dialog::backdrop { background: rgb(2 6 23 / 72%); }
+.agenda-appointment-form { display: flex; max-height: min(44rem, calc(100dvh - 2rem)); flex-direction: column; }
+.agenda-appointment-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.25rem; border-block-end: 1px solid var(--border); }
+.agenda-appointment-dialog-header h2, .agenda-appointment-dialog-header p { margin: 0; }
+.agenda-appointment-dialog-header h2 { font-family: var(--font-display); font-size: 1.15rem; }
+.agenda-appointment-dialog-header p { margin-block-start: 0.3rem; color: var(--muted); font-size: 0.82rem; text-transform: capitalize; }
+.agenda-appointment-dialog-header .icon-button { display: grid; width: 42px; min-height: 42px; flex: none; place-items: center; }
+.agenda-appointment-dialog-header .icon-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.agenda-appointment-dialog-content { display: grid; gap: 1rem; overflow-y: auto; padding: 1.25rem; }
+.agenda-appointment-dialog-content > label, .agenda-time-fields label { display: grid; gap: 0.4rem; color: var(--ink); font-size: 0.8rem; font-weight: 700; }
+.agenda-appointment-dialog-content input, .agenda-appointment-dialog-content select, .agenda-appointment-dialog-content textarea { width: 100%; min-height: 42px; padding: 0.6rem 0.7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); font: 400 0.86rem var(--font-ui); }
+.agenda-appointment-dialog-content textarea { min-height: 6rem; resize: vertical; }
+.agenda-appointment-dialog-content input:focus-visible, .agenda-appointment-dialog-content select:focus-visible, .agenda-appointment-dialog-content textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.agenda-patient-field { position: relative; }
+.agenda-patient-field small { color: var(--muted); font-size: 0.72rem; font-weight: 400; }
+.agenda-patient-suggestions { position: absolute; z-index: 5; inset: calc(100% - 1.5rem) 0 auto; max-height: 12rem; margin: 0; overflow-y: auto; padding: 0.25rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); box-shadow: var(--shadow); list-style: none; }
+.agenda-patient-suggestions button { display: grid; width: 100%; min-height: 42px; gap: 0.1rem; padding: 0.5rem 0.6rem; border: 0; border-radius: 6px; background: transparent; color: var(--ink); text-align: start; }
+.agenda-patient-suggestions button:hover, .agenda-patient-suggestions button:focus-visible { background: color-mix(in srgb, var(--accent) 11%, var(--surface-2)); }
+.agenda-patient-suggestions span { color: var(--muted); font-size: 0.72rem; font-weight: 400; }
+.agenda-professional-summary { display: flex; align-items: center; gap: 0.65rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: 9px; background: color-mix(in srgb, var(--surface-2) 45%, var(--surface)); }
+.agenda-professional-summary .agenda-avatar { position: static; width: 2.25rem; height: 2.25rem; flex: none; }
+.agenda-professional-summary div { display: grid; gap: 0.12rem; }
+.agenda-professional-summary span:not(.agenda-avatar) { color: var(--muted); font-size: 0.72rem; }
+.agenda-professional-summary strong { font-size: 0.86rem; }
+.agenda-time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.agenda-dialog-error { margin: 0; padding: 0.7rem; border: 1px solid color-mix(in srgb, var(--danger) 50%, var(--border)); border-radius: 8px; color: var(--danger); font-size: 0.8rem; }
+.agenda-appointment-dialog-footer { position: sticky; inset-block-end: 0; display: flex; justify-content: flex-end; gap: 0.65rem; padding: 1rem 1.25rem; border-block-start: 1px solid var(--border); background: var(--surface); }
+.agenda-appointment-dialog-footer .button { min-height: 44px; }
 @media (max-width: 1050px) { .agenda-heading { align-items: stretch; flex-direction: column; } .agenda-controls { justify-content: flex-start; } }
-@media (max-width: 600px) { .agenda-controls { display: grid; grid-template-columns: 1fr auto; align-items: end; } .agenda-control-group, .agenda-selector { min-width: 0; } .agenda-segmented { overflow-x: auto; } .agenda-heading > div:first-child, .agenda-controls > .agenda-segmented { grid-column: 1 / -1; } .agenda-navigation { justify-self: end; } .agenda-empty { align-items: flex-start; flex-wrap: wrap; } .agenda-empty button { width: 100%; margin-inline-start: 0; } }
+@media (max-width: 600px) { .agenda-controls { display: grid; grid-template-columns: 1fr auto; align-items: end; } .agenda-control-group, .agenda-selector { min-width: 0; } .agenda-segmented { overflow-x: auto; } .agenda-heading > div:first-child, .agenda-controls > .agenda-segmented { grid-column: 1 / -1; } .agenda-navigation { justify-self: end; } .agenda-empty { align-items: flex-start; flex-wrap: wrap; } .agenda-empty button { width: 100%; margin-inline-start: 0; } .agenda-appointment-dialog { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); } .agenda-appointment-form { max-height: calc(100dvh - 1rem); } .agenda-appointment-dialog-header, .agenda-appointment-dialog-content, .agenda-appointment-dialog-footer { padding-inline: 1rem; } .agenda-appointment-dialog-footer .button { flex: 1; } .agenda-time-fields { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .agenda-slot-plus { transition: none; } }
