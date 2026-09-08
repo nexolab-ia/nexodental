@@ -24,6 +24,23 @@ export function localTime(date: Date): string {
   return new Intl.DateTimeFormat("en-GB", { timeZone: SANTIAGO_TIMEZONE, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(date);
 }
 
+/** Clave de fecha calendario en Santiago, independiente de la zona horaria del proceso. */
+export function santiagoDateKey(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: SANTIAGO_TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+}
+
+/** Aritmética sobre fechas calendario sin convertirlas antes a la zona horaria del proceso. */
+export function addLocalDays(dateKey: string, days: number): string {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days, 12)).toISOString().slice(0, 10);
+}
+
+export function startOfLocalWeek(dateKey: string): string {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const weekday = new Date(Date.UTC(year, month - 1, day, 12)).getUTCDay();
+  return addLocalDays(dateKey, weekday === 0 ? -6 : 1 - weekday);
+}
+
 /** Offset real (ms) de America/Santiago respecto a UTC en un instante dado. Chile: UTC-3 verano / UTC-4 invierno. */
 export function santiagoOffsetMs(date: Date): number {
   const parts = new Intl.DateTimeFormat("en-US", { timeZone: SANTIAGO_TIMEZONE, timeZoneName: "longOffset" }).formatToParts(date);
@@ -45,6 +62,11 @@ export function santiagoLocalToUtc(day: Date, time: string): Date {
   // Muestrear el offset al mediodía UTC del día objetivo evita bordes de transición DST.
   const offsetProbe = new Date(Date.UTC(year, month - 1, date, 12));
   return new Date(naiveUtc - santiagoOffsetMs(offsetProbe));
+}
+
+/** Convierte la medianoche de una clave YYYY-MM-DD de Santiago a su instante UTC real. */
+export function santiagoDateKeyToUtc(dateKey: string): Date {
+  return santiagoLocalToUtc(new Date(`${dateKey}T12:00:00.000Z`), "00:00");
 }
 
 export function isWithinHours(startsAt: Date, endsAt: Date, hours: { weekday: Weekday; startsAt: string; endsAt: string }[]): boolean {
