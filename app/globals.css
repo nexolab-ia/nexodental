@@ -2461,6 +2461,64 @@ textarea[aria-invalid="true"] {
 .agenda-online-actions { margin-block-start: 1rem; padding: 1rem 0; border-block-start: 1px solid var(--border); }
 .agenda-online-actions .button { min-height: 44px; white-space: nowrap; }
 
+/* Keep the master switch active while making every locked configuration area visibly inert. */
+.agenda-online-locked .agenda-online-panel > .agenda-online-section-heading,
+.agenda-online-locked .agenda-online-subsection,
+.agenda-online-locked #agenda-online-panel-customization > :not(.agenda-online-actions),
+.agenda-online-locked #agenda-online-panel-professionals > :not(.agenda-online-actions) { color: color-mix(in srgb, var(--muted) 78%, var(--bg)); }
+.agenda-online-locked .agenda-online-panel > .agenda-online-section-heading h2,
+.agenda-online-locked .agenda-online-subsection .agenda-online-section-heading h2,
+.agenda-online-locked #agenda-online-panel-customization .agenda-online-section-heading h2,
+.agenda-online-locked #agenda-online-panel-professionals .agenda-online-section-heading h2,
+.agenda-online-locked .agenda-online-field,
+.agenda-online-locked .agenda-online-setting-title,
+.agenda-online-locked .agenda-online-professional-name,
+.agenda-online-locked .agenda-online-empty strong { color: color-mix(in srgb, var(--muted) 80%, var(--bg)); }
+.agenda-online-locked .agenda-online-subsection .agenda-online-section-heading h2 svg,
+.agenda-online-locked #agenda-online-panel-customization .agenda-online-section-heading h2 svg,
+.agenda-online-locked #agenda-online-panel-professionals .agenda-online-section-heading h2 svg,
+.agenda-online-locked .agenda-online-empty > svg { color: color-mix(in srgb, var(--muted) 72%, var(--bg)); }
+.agenda-online-locked .agenda-online-subsection .muted,
+.agenda-online-locked #agenda-online-panel-customization .muted,
+.agenda-online-locked #agenda-online-panel-professionals .muted,
+.agenda-online-locked .agenda-online-setting-description,
+.agenda-online-locked .agenda-online-url-preview,
+.agenda-online-locked .agenda-online-counter,
+.agenda-online-locked .agenda-online-empty p { color: color-mix(in srgb, var(--muted) 75%, var(--bg)); }
+.agenda-online-locked .agenda-online-avatar {
+  background: color-mix(in srgb, var(--surface-2) 64%, var(--bg));
+  color: color-mix(in srgb, var(--muted) 78%, var(--bg));
+}
+.agenda-online-locked .agenda-online-badge { border-color: color-mix(in srgb, var(--border) 70%, var(--bg)); color: color-mix(in srgb, var(--muted) 75%, var(--bg)); }
+.agenda-online-locked .agenda-online-professional-row { cursor: not-allowed; }
+.agenda-online-form :is(input, textarea, select):disabled {
+  border-color: color-mix(in srgb, var(--border) 68%, var(--bg));
+  background: color-mix(in srgb, var(--surface) 72%, var(--bg));
+  color: color-mix(in srgb, var(--muted) 78%, var(--bg));
+  cursor: not-allowed;
+  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 78%, var(--bg));
+}
+.agenda-online-form :is(input, textarea):disabled::placeholder { color: color-mix(in srgb, var(--muted) 68%, var(--bg)); }
+.agenda-online-locked .agenda-online-url-suffix {
+  border-color: color-mix(in srgb, var(--border) 68%, var(--bg));
+  background: color-mix(in srgb, var(--surface) 72%, var(--bg));
+  color: color-mix(in srgb, var(--muted) 75%, var(--bg));
+}
+.agenda-online-form .perm-switch input:disabled + .perm-switch-track,
+.agenda-online-form .perm-switch input:disabled:checked + .perm-switch-track {
+  border-color: color-mix(in srgb, var(--border) 68%, var(--bg));
+  background: color-mix(in srgb, var(--surface-2) 58%, var(--bg));
+  cursor: not-allowed;
+}
+.agenda-online-form .perm-switch input:disabled + .perm-switch-track > span,
+.agenda-online-form .perm-switch input:disabled:checked + .perm-switch-track > span { background: color-mix(in srgb, var(--muted) 58%, var(--bg)); }
+.agenda-online-form .button:disabled {
+  border-color: color-mix(in srgb, var(--border) 68%, var(--bg));
+  background: color-mix(in srgb, var(--surface-2) 64%, var(--bg));
+  color: color-mix(in srgb, var(--muted) 78%, var(--bg));
+  cursor: not-allowed;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .agenda-online-tab, .agenda-online-tab::after { transition: none; }
 }

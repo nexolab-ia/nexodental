@@ -68,7 +68,7 @@ export function AgendaOnlinePage({ settings, professionals, updateAction }: {
   }
 
   return (
-    <form action={updateAction} className="agenda-online-form">
+    <form action={updateAction} className={`agenda-online-form${locked ? " agenda-online-locked" : ""}`}>
       <div className="agenda-online-tabs" role="tablist" aria-label="Configuración de agenda online">
         {TABS.map((tab) => (
           <button className="agenda-online-tab" id={`agenda-online-tab-${tab.id}`} key={tab.id} type="button" role="tab" aria-controls={`agenda-online-panel-${tab.id}`} aria-selected={activeTab === tab.id} tabIndex={activeTab === tab.id ? 0 : -1} onClick={() => setActiveTab(tab.id)}>{tab.label}</button>
