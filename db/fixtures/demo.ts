@@ -6,6 +6,7 @@ import { addDaysLocal, todayInSantiago } from "@/features/dashboard/domain";
 /** Todos los datos de esta fixture son ficticios y nunca representan pacientes reales. */
 export const FICTIONAL_DATA_MARKER =
   "DATOS FICTICIOS — solo demostración NexoDent";
+const fictionalSettings = { marker: FICTIONAL_DATA_MARKER };
 export const demoIds = {
   clinic: "10000000-0000-4000-8000-000000000001",
   providencia: "10000000-0000-4000-8000-000000000002",
@@ -141,7 +142,7 @@ const users = [
 ] as const;
 
 export async function insertDemoFixture(sql: Sql): Promise<void> {
-  await sql`INSERT INTO organizations (id, type, slug, name, settings) VALUES (${demoIds.clinic}, 'clinic', 'demo-clinic', 'Clínica Sonrisa Andes', ${JSON.stringify({ marker: FICTIONAL_DATA_MARKER })}::jsonb), (${demoIds.independent}, 'independent', 'dra-valentina-rojas', 'Dra. Valentina Rojas', ${JSON.stringify({ marker: FICTIONAL_DATA_MARKER })}::jsonb) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, settings = EXCLUDED.settings, updated_at = now()`;
+  await sql`INSERT INTO organizations (id, type, slug, name, settings) VALUES (${demoIds.clinic}, 'clinic', 'demo-clinic', 'Clínica Sonrisa Andes', ${sql.json(fictionalSettings)}), (${demoIds.independent}, 'independent', 'dra-valentina-rojas', 'Dra. Valentina Rojas', ${sql.json(fictionalSettings)}) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, settings = EXCLUDED.settings, updated_at = now()`;
   const convenioSchema = (
     await sql<
       { ready: boolean }[]
