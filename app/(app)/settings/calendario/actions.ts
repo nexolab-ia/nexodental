@@ -36,15 +36,15 @@ export async function updateCalendarSettings(formData: FormData): Promise<void> 
 
     await tx`
       UPDATE organizations SET settings = COALESCE(settings, '{}'::jsonb)
-        || jsonb_build_object('calendar', ${tx.json(calendar)})
+        || jsonb_build_object('calendar', ${JSON.stringify(calendar)}::jsonb)
       WHERE id = ${actor.organizationId}
     `;
     await tx`
       INSERT INTO audit_logs
         (organization_id, actor_membership_id, action, entity, entity_id, before, after, reason)
       VALUES (${actor.organizationId}, ${actor.membershipId}, 'settings.calendar_updated', 'organization',
-        ${actor.organizationId}, ${tx.json({ calendar: previous.settings?.calendar ?? null })},
-        ${tx.json({ calendar })}, 'settings.calendar')
+        ${actor.organizationId}, ${JSON.stringify({ calendar: previous.settings?.calendar ?? null })}::jsonb,
+        ${JSON.stringify({ calendar })}::jsonb, 'settings.calendar')
     `;
   });
 

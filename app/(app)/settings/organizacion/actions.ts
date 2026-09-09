@@ -57,18 +57,18 @@ export async function updateOrganizationProfile(formData: FormData): Promise<voi
     const updated = logo
       ? (await tx<Array<{ settings: OrganizationSettings }>>`
           UPDATE organizations SET name = ${name}, settings = COALESCE(settings, '{}'::jsonb)
-            || jsonb_build_object('contact', ${tx.json(contact)}) || jsonb_build_object('logo', ${logo})
+            || jsonb_build_object('contact', ${JSON.stringify(contact)}::jsonb) || jsonb_build_object('logo', ${logo})
           WHERE id = ${actor.organizationId} RETURNING settings
         `)[0]
       : logoClear
         ? (await tx<Array<{ settings: OrganizationSettings }>>`
             UPDATE organizations SET name = ${name}, settings =
-              (COALESCE(settings, '{}'::jsonb) || jsonb_build_object('contact', ${tx.json(contact)})) - 'logo'
+              (COALESCE(settings, '{}'::jsonb) || jsonb_build_object('contact', ${JSON.stringify(contact)}::jsonb)) - 'logo'
             WHERE id = ${actor.organizationId} RETURNING settings
           `)[0]
         : (await tx<Array<{ settings: OrganizationSettings }>>`
             UPDATE organizations SET name = ${name}, settings = COALESCE(settings, '{}'::jsonb)
-              || jsonb_build_object('contact', ${tx.json(contact)})
+              || jsonb_build_object('contact', ${JSON.stringify(contact)}::jsonb)
             WHERE id = ${actor.organizationId} RETURNING settings
           `)[0];
 
@@ -76,8 +76,8 @@ export async function updateOrganizationProfile(formData: FormData): Promise<voi
       INSERT INTO audit_logs
         (organization_id, actor_membership_id, action, entity, entity_id, before, after, reason)
       VALUES (${actor.organizationId}, ${actor.membershipId}, 'organization.updated', 'organization',
-        ${actor.organizationId}, ${tx.json({ name: previous.name, contact: previous.settings?.contact ?? null })},
-        ${tx.json({ name, contact: updated?.settings.contact ?? contact })}, 'settings.organization_profile')
+        ${actor.organizationId}, ${JSON.stringify({ name: previous.name, contact: previous.settings?.contact ?? null })}::jsonb,
+        ${JSON.stringify({ name, contact: updated?.settings.contact ?? contact })}::jsonb, 'settings.organization_profile')
     `;
   });
   redirect("/settings/organizacion?ok=profile");
@@ -99,13 +99,13 @@ export async function updateOrganizationSchedule(formData: FormData): Promise<vo
     if (!previous) throw new Error("La organización no está disponible.");
     const schedule = { openTime, closeTime };
     await tx`UPDATE organizations SET settings = COALESCE(settings, '{}'::jsonb)
-      || jsonb_build_object('schedule', ${tx.json(schedule)}) WHERE id = ${actor.organizationId}`;
+      || jsonb_build_object('schedule', ${JSON.stringify(schedule)}::jsonb) WHERE id = ${actor.organizationId}`;
     await tx`
       INSERT INTO audit_logs
         (organization_id, actor_membership_id, action, entity, entity_id, before, after, reason)
       VALUES (${actor.organizationId}, ${actor.membershipId}, 'organization.updated', 'organization',
-        ${actor.organizationId}, ${tx.json({ schedule: previous.settings?.schedule ?? null })},
-        ${tx.json({ schedule })}, 'settings.organization_schedule')
+        ${actor.organizationId}, ${JSON.stringify({ schedule: previous.settings?.schedule ?? null })}::jsonb,
+        ${JSON.stringify({ schedule })}::jsonb, 'settings.organization_schedule')
     `;
   });
   redirect("/settings/organizacion?ok=schedule");

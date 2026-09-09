@@ -63,15 +63,15 @@ export async function updatePermissions(formData: FormData): Promise<void> {
 
     await tx`
       UPDATE organizations SET settings = COALESCE(settings, '{}'::jsonb)
-        || jsonb_build_object('permissions', ${tx.json(permissions)})
+        || jsonb_build_object('permissions', ${JSON.stringify(permissions)}::jsonb)
       WHERE id = ${actor.organizationId}
     `;
     await tx`
       INSERT INTO audit_logs
         (organization_id, actor_membership_id, action, entity, entity_id, before, after, reason)
       VALUES (${actor.organizationId}, ${actor.membershipId}, 'settings.permissions_updated', 'organization',
-        ${actor.organizationId}, ${tx.json({ permissions: previous.settings?.permissions ?? null })},
-        ${tx.json({ permissions })}, 'settings.permissions')
+        ${actor.organizationId}, ${JSON.stringify({ permissions: previous.settings?.permissions ?? null })}::jsonb,
+        ${JSON.stringify({ permissions })}::jsonb, 'settings.permissions')
     `;
   });
 

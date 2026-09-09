@@ -52,6 +52,36 @@ function readProfessionalIds(formData: FormData) {
 export async function updateAgendaOnlineSettings(formData: FormData): Promise<void> {
   const actor = await requestTenantContext();
   authorize(actor, "organization:manage");
+  const enabled = formData.get("enabled") === "on";
+
+  if (!enabled) {
+    await runAsTenant(sql, actor, async (tx) => {
+      const previous = (await tx<Array<{ settings: OrganizationSettings | null }>>`
+        SELECT settings FROM organizations WHERE id = ${actor.organizationId} FOR UPDATE
+      `)[0];
+      if (!previous) throw new Error("La organización no está disponible.");
+
+      const agendaOnline = {
+        ...(previous.settings?.agendaOnline ?? {}),
+        enabled: false,
+      };
+
+      await tx`
+        UPDATE organizations SET settings = COALESCE(settings, '{}'::jsonb)
+          || jsonb_build_object('agendaOnline', ${JSON.stringify(agendaOnline)}::jsonb)
+        WHERE id = ${actor.organizationId}
+      `;
+      await tx`
+        INSERT INTO audit_logs
+          (organization_id, actor_membership_id, action, entity, entity_id, before, after, reason)
+        VALUES (${actor.organizationId}, ${actor.membershipId}, 'settings.agenda_online_updated', 'organization',
+          ${actor.organizationId}, ${JSON.stringify({ agendaOnline: previous.settings?.agendaOnline ?? null })}::jsonb,
+          ${JSON.stringify({ agendaOnline })}::jsonb, 'settings.agenda_online')
+      `;
+    });
+
+    redirect("/settings/agenda-online?ok=agenda-online");
+  }
 
   const slug = String(formData.get("slug") ?? "").trim().toLowerCase();
   if (slug.length < 3 || !SLUG_PATTERN.test(slug)) {
@@ -83,7 +113,7 @@ export async function updateAgendaOnlineSettings(formData: FormData): Promise<vo
   });
 
   const agendaOnline: AgendaOnlineSettings = {
-    enabled: formData.get("enabled") === "on",
+    enabled,
     slug,
     themeColor: themeColor.toLowerCase(),
     welcomeMessage: readText(formData, "welcomeMessage", 200, "El mensaje de bienvenida"),
@@ -101,15 +131,15 @@ export async function updateAgendaOnlineSettings(formData: FormData): Promise<vo
 
     await tx`
       UPDATE organizations SET settings = COALESCE(settings, '{}'::jsonb)
-        || jsonb_build_object('agendaOnline', ${tx.json(agendaOnline)})
+        || jsonb_build_object('agendaOnline', ${JSON.stringify(agendaOnline)}::jsonb)
       WHERE id = ${actor.organizationId}
     `;
     await tx`
       INSERT INTO audit_logs
         (organization_id, actor_membership_id, action, entity, entity_id, before, after, reason)
       VALUES (${actor.organizationId}, ${actor.membershipId}, 'settings.agenda_online_updated', 'organization',
-        ${actor.organizationId}, ${tx.json({ agendaOnline: previous.settings?.agendaOnline ?? null })},
-        ${tx.json({ agendaOnline })}, 'settings.agenda_online')
+        ${actor.organizationId}, ${JSON.stringify({ agendaOnline: previous.settings?.agendaOnline ?? null })}::jsonb,
+        ${JSON.stringify({ agendaOnline })}::jsonb, 'settings.agenda_online')
     `;
   });
 
