@@ -5,6 +5,6 @@ import { SessionTypesManager, type SessionTypeItem } from "./session-types-manag
 
 export default async function TiposSesionPage() {
   const actor = await requestTenantContext();
-  const items = await runAsTenant(sql, actor, (tx) => tx<SessionTypeItem[]>`SELECT id, name, duration_minutes AS "durationMinutes", is_default AS "isDefault", active FROM session_types WHERE organization_id = ${actor.organizationId} ORDER BY is_default DESC, active DESC, name ASC`);
-  return <main className="session-types-settings"><header className="organization-heading"><h1>Tipos de sesión</h1><p className="muted">Administra las atenciones disponibles y su duración predeterminada.</p></header><SessionTypesManager items={items}/></main>;
+  const items = await runAsTenant(sql, actor, (tx) => tx<SessionTypeItem[]>`SELECT id, name, duration_minutes AS "durationMinutes", description, active FROM session_types WHERE organization_id = ${actor.organizationId} ORDER BY name ASC`);
+  return <main className="session-types-settings"><SessionTypesManager items={items}/></main>;
 }

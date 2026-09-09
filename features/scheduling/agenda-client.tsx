@@ -14,7 +14,7 @@ type Availability = { weekday: Weekday; startsAt: string; endsAt: string };
 type Professional = { id: string; name: string; availability: Availability[] };
 type Box = { id: string; name: string };
 type Patient = { id: string; name: string; email: string | null; phone: string | null };
-type SessionType = { id: string; name: string; durationMinutes: number; isDefault: boolean };
+type SessionType = { id: string; name: string; durationMinutes: number };
 type CreateAt = { dateKey: string; startMinutes: number; professionalId?: string };
 
 const halfHourHeight = 42;
@@ -236,7 +236,7 @@ function durationLabel(minutes: number): string {
 
 function AgendaCreateDialog({ createAt, professional, boxes, patients, convenios, sessionTypes, blockDuration, onClose, onCreated }: { createAt: CreateAt; professional: Professional; boxes: Box[]; patients: Patient[]; convenios: ConvenioOption[]; sessionTypes: SessionType[]; blockDuration: number; onClose: () => void; onCreated: () => Promise<void> }) {
   const dialogRef = useRef<HTMLDialogElement>(null); const titleRef = useRef<HTMLHeadingElement>(null); const patientDialogRef = useRef<HTMLDialogElement>(null);
-  const defaultType = sessionTypes.find((item) => item.isDefault) ?? null;
+  const defaultType = sessionTypes[0] ?? null;
   const initialDuration = defaultType?.durationMinutes ?? (durationGroups.flatMap((group) => group.values).includes(blockDuration) ? blockDuration : 30);
   const [patientName, setPatientName] = useState(""); const [patientId, setPatientId] = useState<string | null>(null); const [patientContact, setPatientContact] = useState<string | null>(null); const [localPatients, setLocalPatients] = useState(patients); const [patientFormKey, setPatientFormKey] = useState(0); const [boxId, setBoxId] = useState(""); const [sessionTypeId, setSessionTypeId] = useState(defaultType?.id ?? ""); const [duration, setDuration] = useState(initialDuration); const [notes, setNotes] = useState(""); const [error, setError] = useState(""); const [notice, setNotice] = useState(""); const [isCreating, setIsCreating] = useState(false); const [isCreatingPatient, setIsCreatingPatient] = useState(false); const [patientError, setPatientError] = useState("");
   const startsAt = timeFromMinutes(createAt.startMinutes); const endsAt = timeFromMinutes(createAt.startMinutes + duration);

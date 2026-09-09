@@ -9,7 +9,7 @@ import { runAsTenant } from "@/lib/tenancy";
 type ProfessionalRow = { id: string; name: string };
 type BoxRow = { id: string; name: string };
 type PatientRow = { id: string; firstName: string; lastName: string; email: string | null; phone: string | null };
-type SessionTypeRow = { id: string; name: string; durationMinutes: number; isDefault: boolean };
+type SessionTypeRow = { id: string; name: string; durationMinutes: number };
 type ConvenioRow = { id: string; name: string };
 type AvailabilityRow = { professionalMembershipId: string; weekday: "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun"; startsAt: string; endsAt: string };
 type OrganizationSettings = { calendar?: { blockDuration?: number } };
@@ -22,7 +22,7 @@ export default async function AgendaPage() {
     tx<AvailabilityRow[]>`SELECT professional_membership_id AS "professionalMembershipId", weekday, starts_at::text AS "startsAt", ends_at::text AS "endsAt" FROM professional_availability WHERE organization_id = ${actor.organizationId}`,
     tx<PatientRow[]>`SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone FROM patients WHERE organization_id = ${actor.organizationId} ORDER BY first_name, last_name`,
     tx<Array<{ settings: OrganizationSettings | null }>>`SELECT settings FROM organizations WHERE id = ${actor.organizationId}`,
-    tx<SessionTypeRow[]>`SELECT id, name, duration_minutes AS "durationMinutes", is_default AS "isDefault" FROM session_types WHERE organization_id = ${actor.organizationId} AND active ORDER BY is_default DESC, name ASC`,
+    tx<SessionTypeRow[]>`SELECT id, name, duration_minutes AS "durationMinutes" FROM session_types WHERE organization_id = ${actor.organizationId} AND active ORDER BY name ASC`,
     tx<ConvenioRow[]>`SELECT id, name FROM convenios WHERE organization_id = ${actor.organizationId} AND is_active ORDER BY name`,
   ]));
   const initialDate = santiagoDateKey(new Date()); const monday = startOfLocalWeek(initialDate);

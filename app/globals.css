@@ -2342,20 +2342,38 @@ textarea[aria-invalid="true"] {
 @media (prefers-reduced-motion: reduce) { .agenda-slot-plus, .agenda-appointment-dialog *, .session-type-dialog * { transition: none !important; } }
 
 .session-types-settings { display: grid; gap: 1rem; }
-.session-types-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.session-types-card { padding: 0; overflow: hidden; }
+.session-types-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem; }
+.session-types-heading h1, .session-types-heading p { margin: 0; }
+.session-types-heading h1 { font: 700 1.1rem var(--font-display); letter-spacing: -0.02em; }
+.session-types-heading p { margin-block-start: 0.25rem; font-size: 0.8rem; }
 .session-types-heading .button { min-height: 44px; white-space: nowrap; }
+.session-types-add { gap: 0.45rem; }
+.session-types-add > span { font-size: 1.25rem; font-weight: 500; line-height: 1; }
+.session-types-toolbar { display: flex; align-items: center; min-height: 48px; padding: 0.6rem 1.25rem; border-block-start: 1px solid var(--border); }
+.session-types-filter { display: inline-flex; align-items: center; gap: 0.55rem; color: var(--muted); cursor: pointer; font-size: 0.78rem; font-weight: 600; }
+.session-types-filter input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--accent); }
+.session-types-filter:focus-within { color: var(--ink); }
 .session-types-table-wrap { overflow-x: auto; }
 .session-types-table { width: 100%; border-collapse: collapse; }
-.session-types-table th, .session-types-table td { padding: 0.8rem; border-block-start: 1px solid var(--border); text-align: start; vertical-align: middle; }
+.session-types-table th, .session-types-table td { padding: 0.9rem 1.25rem; border-block-start: 1px solid var(--border); text-align: start; vertical-align: middle; }
 .session-types-table th { color: var(--muted); font-size: 0.72rem; font-weight: 600; }
 .session-types-table td { font-size: 0.84rem; }
-.session-type-default, .session-type-status { display: inline-flex; align-items: center; min-height: 1.7rem; padding: 0.2rem 0.55rem; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
-.session-type-default { border-color: var(--accent); color: var(--accent); }
-.session-type-status.is-active { border-color: color-mix(in srgb, var(--success) 45%, var(--border)); color: var(--success); }
+.session-types-table th:last-child, .session-types-table td:last-child { width: 1%; text-align: end; }
+.session-types-table tbody tr { transition: background-color 160ms ease, opacity 160ms ease; }
+.session-types-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 4%, var(--surface)); }
+.session-types-table tbody tr.is-disabled { opacity: 0.48; background: color-mix(in srgb, var(--muted) 4%, var(--surface)); }
+.session-type-duration { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .session-type-actions { display: flex; justify-content: flex-end; gap: 0.45rem; }
-.session-type-actions .button { min-height: 44px; white-space: nowrap; }
-.session-type-text-action { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--accent); font-size: 0.78rem; font-weight: 700; }
-.session-type-text-action:hover { background: transparent; color: var(--ink); }
+.session-type-actions form { display: flex; align-items: center; }
+.session-type-edit { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px; padding: 0.45rem 0.6rem; border: 0; background: transparent; color: var(--muted); font-size: 0.76rem; font-weight: 700; }
+.session-type-edit svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.session-type-edit:hover { background: var(--surface-2); color: var(--ink); }
+.session-type-actions button.perm-switch { position: relative; display: inline-flex; width: 44px; min-width: 44px; height: 24px; min-height: 24px; padding: 2px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2); }
+.session-type-actions button.perm-switch > span { display: block; width: 18px; height: 18px; border-radius: 50%; background: var(--muted); transition: transform 160ms ease, background-color 160ms ease; }
+.session-type-actions button.perm-switch.is-on { border-color: var(--accent); background: var(--accent); }
+.session-type-actions button.perm-switch.is-on > span { transform: translateX(18px); background: var(--bg); }
+.session-type-actions button.perm-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .session-types-empty { display: grid; justify-items: start; gap: 0.5rem; padding: 2rem 1rem; border-block-start: 1px solid var(--border); }
 .session-types-empty p { margin: 0 0 0.5rem; color: var(--muted); }
 .session-type-dialog { width: min(30rem, calc(100vw - 2rem)); margin: auto; padding: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
@@ -2370,10 +2388,12 @@ textarea[aria-invalid="true"] {
 .session-type-dialog footer .button { min-height: 44px; }
 .session-type-dialog-body { display: grid; gap: 1rem; padding: 1.25rem; }
 .session-type-dialog-body label { display: grid; gap: 0.4rem; font-size: 0.8rem; font-weight: 700; }
-.session-type-dialog-body input:not([type="checkbox"]) { width: 100%; min-height: 44px; padding: 0.6rem 0.7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); }
-.session-type-checkbox { grid-template-columns: auto 1fr; align-items: center; }
-.session-type-checkbox input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
-@media (max-width: 700px) { .session-types-heading { align-items: stretch; flex-direction: column; } .session-types-heading .button { width: 100%; } .session-type-actions { justify-content: flex-start; } }
+.session-type-dialog-body input:not([type="checkbox"]), .session-type-dialog-body select, .session-type-dialog-body textarea { width: 100%; min-height: 44px; padding: 0.6rem 0.7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; }
+.session-type-dialog-body textarea { min-height: 6.5rem; resize: vertical; line-height: 1.5; }
+.session-type-dialog-body input:focus-visible, .session-type-dialog-body select:focus-visible, .session-type-dialog-body textarea:focus-visible { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 2px; }
+.session-type-dialog-body small { color: var(--muted); font-size: 0.7rem; font-weight: 400; line-height: 1.45; }
+.session-type-optional { color: var(--muted); font-weight: 500; }
+@media (max-width: 700px) { .session-types-heading { align-items: stretch; flex-direction: column; } .session-types-heading .button { width: 100%; } .session-types-table th, .session-types-table td { padding-inline: 0.8rem; } .session-type-edit span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } }
 
 /* Agenda global view, box combobox and appointment status legend */
 .agenda-box-combobox { position: relative; width: min(18rem, 100%); }

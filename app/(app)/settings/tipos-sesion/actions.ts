@@ -9,12 +9,17 @@ import { runAsTenant } from "@/lib/tenancy";
 function field(formData: FormData, name: string): string { return String(formData.get(name) ?? "").trim(); }
 function duration(formData: FormData): number {
   const value = Number(field(formData, "durationMinutes"));
-  if (!Number.isInteger(value) || value < 10 || value > 240) throw new Error("La duración debe estar entre 10 y 240 minutos.");
+  if (![15, 30, 45, 60].includes(value)) throw new Error("Selecciona una duración de 15, 30, 45 o 60 minutos.");
   return value;
 }
 function name(formData: FormData): string {
   const value = field(formData, "name");
   if (value.length < 2 || value.length > 120) throw new Error("El nombre debe tener entre 2 y 120 caracteres.");
+  return value;
+}
+function description(formData: FormData): string {
+  const value = field(formData, "description");
+  if (value.length > 150) throw new Error("La descripción no puede superar los 150 caracteres.");
   return value;
 }
 
@@ -28,17 +33,14 @@ async function manage(work: (actor: Awaited<ReturnType<typeof requestTenantConte
 
 export async function createSessionType(formData: FormData): Promise<void> {
   await manage(async (actor) => runAsTenant(sql, actor, async (tx) => {
-    const typeName = name(formData); const durationMinutes = duration(formData);
-    const makeDefault = field(formData, "isDefault") === "on";
-    if (makeDefault) await tx`UPDATE session_types SET is_default = false, updated_at = now() WHERE organization_id = ${actor.organizationId} AND is_default`;
-    await tx`INSERT INTO session_types (organization_id, name, duration_minutes, is_default) VALUES (${actor.organizationId}, ${typeName}, ${durationMinutes}, ${makeDefault})`;
+    await tx`INSERT INTO session_types (organization_id, name, duration_minutes, description) VALUES (${actor.organizationId}, ${name(formData)}, ${duration(formData)}, ${description(formData)})`;
   }));
 }
 
 export async function updateSessionType(formData: FormData): Promise<void> {
   await manage(async (actor) => runAsTenant(sql, actor, async (tx) => {
     const id = field(formData, "id");
-    const updated = await tx`UPDATE session_types SET name = ${name(formData)}, duration_minutes = ${duration(formData)}, updated_at = now() WHERE id = ${id} AND organization_id = ${actor.organizationId} RETURNING id`;
+    const updated = await tx`UPDATE session_types SET name = ${name(formData)}, duration_minutes = ${duration(formData)}, description = ${description(formData)}, updated_at = now() WHERE id = ${id} AND organization_id = ${actor.organizationId} RETURNING id`;
     if (!updated.length) throw new Error("El tipo de sesión ya no está disponible.");
   }));
 }
@@ -46,16 +48,7 @@ export async function updateSessionType(formData: FormData): Promise<void> {
 export async function toggleSessionType(formData: FormData): Promise<void> {
   await manage(async (actor) => runAsTenant(sql, actor, async (tx) => {
     const id = field(formData, "id"); const active = field(formData, "active") === "true";
-    const updated = await tx`UPDATE session_types SET active = ${active}, is_default = CASE WHEN ${active} THEN is_default ELSE false END, updated_at = now() WHERE id = ${id} AND organization_id = ${actor.organizationId} RETURNING id`;
+    const updated = await tx`UPDATE session_types SET active = ${active}, updated_at = now() WHERE id = ${id} AND organization_id = ${actor.organizationId} RETURNING id`;
     if (!updated.length) throw new Error("El tipo de sesión ya no está disponible.");
-  }));
-}
-
-export async function setDefaultSessionType(formData: FormData): Promise<void> {
-  await manage(async (actor) => runAsTenant(sql, actor, async (tx) => {
-    const id = field(formData, "id");
-    const target = (await tx<{ id: string }[]>`SELECT id FROM session_types WHERE id = ${id} AND organization_id = ${actor.organizationId} AND active FOR UPDATE`)[0];
-    if (!target) throw new Error("Solo puedes marcar como predeterminado un tipo activo.");
-    await tx`UPDATE session_types SET is_default = (id = ${id}), updated_at = CASE WHEN is_default <> (id = ${id}) THEN now() ELSE updated_at END WHERE organization_id = ${actor.organizationId}`;
   }));
 }
