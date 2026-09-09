@@ -61,6 +61,7 @@ export function AgendaOnlinePage({ settings, professionals, updateAction }: {
   const locked = !enabled;
   const slugIsValid = slug.length >= 3 && SLUG_PATTERN.test(slug);
   const colorIsValid = HEX_PATTERN.test(themeColor);
+  const publicUrl = `https://${(slug || "mi-clinica").toLowerCase()}.reserva.dental.nexolabs.cloud`;
   const professionalNoun = professionals.length === 1 ? "profesional habilitado" : "profesionales habilitados";
 
   function toggleProfessional(id: string) {
@@ -81,10 +82,21 @@ export function AgendaOnlinePage({ settings, professionals, updateAction }: {
           <span className="agenda-online-setting-copy"><strong className="agenda-online-setting-title">Agenda online habilitada</strong><span className="agenda-online-setting-description">Permite que tus pacientes reserven citas en línea</span></span>
           <span className="perm-switch"><input type="checkbox" role="switch" name="enabled" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} aria-label="Agenda online habilitada" /><span className="perm-switch-track" aria-hidden="true"><span /></span></span>
         </label>
+        {!locked && (
+          <div className="agenda-online-public-url">
+            <div className="agenda-online-public-url-copy">
+              <strong>URL pública</strong>
+              <span>Esta es la dirección que compartes con tus pacientes para que reserven</span>
+            </div>
+            <div className="agenda-online-public-url-box">
+              <span>{publicUrl}</span>
+              <a href={publicUrl} target="_blank" rel="noopener noreferrer" aria-label="Abrir la página pública de reservas en una pestaña nueva">Abrir ↗</a>
+            </div>
+          </div>
+        )}
         <div className="agenda-online-subsection">
           <header className="agenda-online-section-heading"><h2><SectionIcon kind="link" />Nombre de la URL</h2><p className="muted">Elige el nombre que identificará el enlace público de tu agenda</p></header>
-          <label className="agenda-online-field" htmlFor="agenda-online-slug"><span>Nombre de la URL</span><span className="agenda-online-url-control"><input id="agenda-online-slug" name="slug" value={slug} onChange={(event) => setSlug(normalizeSlug(event.target.value))} placeholder="mi-clinica" minLength={3} maxLength={63} pattern="[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?" required disabled={locked} aria-describedby="agenda-online-slug-preview agenda-online-slug-error" aria-invalid={slug.length > 0 && !slugIsValid} /><span className="agenda-online-url-suffix">.reserva.dental.nexolabs.cloud</span></span></label>
-          <p className="agenda-online-url-preview" id="agenda-online-slug-preview">https://{slug || "mi-clinica"}.reserva.dental.nexolabs.cloud</p>
+          <label className="agenda-online-field" htmlFor="agenda-online-slug"><span>Nombre de la URL</span><span className="agenda-online-url-control"><input id="agenda-online-slug" name="slug" value={slug} onChange={(event) => setSlug(normalizeSlug(event.target.value))} placeholder="mi-clinica" minLength={3} maxLength={63} pattern="[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?" required disabled={locked} aria-describedby={slug.length > 0 && !slugIsValid ? "agenda-online-slug-error" : undefined} aria-invalid={slug.length > 0 && !slugIsValid} /><span className="agenda-online-url-suffix">.reserva.dental.nexolabs.cloud</span></span></label>
           {slug.length > 0 && !slugIsValid && <p className="field-error agenda-online-field-error" id="agenda-online-slug-error">Usa al menos 3 caracteres. Solo se permiten letras minúsculas, números y guiones, sin guiones al inicio ni al final.</p>}
         </div>
         <div className="settings-card-actions agenda-online-actions"><button type="submit" className="button button-primary">Guardar cambios</button></div>

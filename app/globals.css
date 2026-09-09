@@ -2433,6 +2433,16 @@ textarea[aria-invalid="true"] {
 .agenda-online-setting-copy, .agenda-online-professional-copy { display: grid; gap: 0.25rem; min-width: 0; }
 .agenda-online-setting-title, .agenda-online-professional-name { color: var(--ink); font-size: 0.92rem; font-weight: 700; line-height: 1.35; }
 .agenda-online-setting-description { color: var(--muted); font-size: 0.8rem; line-height: 1.45; }
+.agenda-online-public-url { display: grid; gap: 0.7rem; padding: 1rem 0 1.15rem; border-block-start: 1px solid var(--border); }
+.agenda-online-public-url-copy { display: grid; gap: 0.25rem; }
+.agenda-online-public-url-copy strong { color: var(--ink); font-size: 0.88rem; line-height: 1.35; }
+.agenda-online-public-url-copy span { color: var(--muted); font-size: 0.8rem; line-height: 1.45; }
+.agenda-online-public-url-box { display: flex; align-items: center; gap: 1rem; min-width: 0; min-height: 44px; padding: 0.45rem 0.55rem 0.45rem 0.8rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.agenda-online-public-url-box > span { min-width: 0; flex: 1; color: var(--ink); font: 0.8rem/1.5 var(--font-mono); overflow-wrap: anywhere; }
+.agenda-online-public-url-box a { display: inline-flex; min-height: 44px; flex: none; align-items: center; justify-content: center; padding: 0.4rem 0.65rem; border-radius: 6px; color: var(--accent); font-size: 0.82rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.agenda-online-public-url-box a:hover { background: var(--surface-2); color: var(--accent-strong); }
+.agenda-online-public-url-box a:active { transform: scale(0.98); }
+.agenda-online-public-url-box a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .agenda-online-subsection { display: grid; padding-block-start: 1.15rem; border-block-start: 1px solid var(--border); }
 .agenda-online-field { display: grid; gap: 0.45rem; color: var(--ink); font-size: 0.88rem; font-weight: 650; }
 .agenda-online-field input:not([type="color"]), .agenda-online-field select, .agenda-online-field textarea, .agenda-online-color-row input:not([type="color"]) { width: 100%; min-height: 44px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); }
@@ -2441,7 +2451,6 @@ textarea[aria-invalid="true"] {
 .agenda-online-url-control { display: flex; min-width: 0; }
 .agenda-online-url-control input { min-width: 6rem; border-start-end-radius: 0 !important; border-end-end-radius: 0 !important; }
 .agenda-online-url-suffix { display: inline-flex; align-items: center; min-height: 44px; padding: 0.65rem 0.8rem; border: 1px solid var(--border); border-inline-start: 0; border-radius: 0 8px 8px 0; background: var(--surface-2); color: var(--muted); font: 500 0.79rem var(--font-mono); white-space: nowrap; }
-.agenda-online-url-preview { margin: 0.65rem 0 0; color: var(--muted); font: 0.78rem/1.5 var(--font-mono); overflow-wrap: anywhere; }
 .agenda-online-field-error { margin: 0.45rem 0 0; color: var(--danger); font-size: 0.8rem; font-weight: 500; }
 .agenda-online-fields { display: grid; gap: 1.15rem; padding-block-start: 1rem; border-block-start: 1px solid var(--border); }
 .agenda-online-color-row { display: grid; grid-template-columns: 52px minmax(8rem, 12rem); align-items: center; gap: 0.65rem; }
@@ -2482,7 +2491,6 @@ textarea[aria-invalid="true"] {
 .agenda-online-locked #agenda-online-panel-customization .muted,
 .agenda-online-locked #agenda-online-panel-professionals .muted,
 .agenda-online-locked .agenda-online-setting-description,
-.agenda-online-locked .agenda-online-url-preview,
 .agenda-online-locked .agenda-online-counter,
 .agenda-online-locked .agenda-online-empty p { color: color-mix(in srgb, var(--muted) 75%, var(--bg)); }
 .agenda-online-locked .agenda-online-avatar {
@@ -2521,9 +2529,12 @@ textarea[aria-invalid="true"] {
 
 @media (prefers-reduced-motion: reduce) {
   .agenda-online-tab, .agenda-online-tab::after { transition: none; }
+  .agenda-online-public-url-box a:active { transform: none; }
 }
 
 @media (max-width: 680px) {
+  .agenda-online-public-url-box { align-items: stretch; flex-direction: column; }
+  .agenda-online-public-url-box a { align-self: flex-start; min-height: 44px; }
   .agenda-online-url-control { display: grid; }
   .agenda-online-url-control input { border-radius: 8px 8px 0 0 !important; }
   .agenda-online-url-suffix { justify-content: flex-start; border-inline-start: 1px solid var(--border); border-block-start: 0; border-radius: 0 0 8px 8px; white-space: normal; overflow-wrap: anywhere; }
