@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 export const SETTINGS_PLACEHOLDERS: Record<string, { title: string; description: string }> = {
   plan: { title: "Plan", description: "Suscripción, cobros y medios de pago de tu espacio." },
   usuarios: { title: "Usuarios", description: "Quiénes acceden a la clínica." },
-  box: { title: "Box", description: "Sillones y boxes de atención de la clínica." },
   plantillas: { title: "Plantillas", description: "Plantillas de evoluciones y documentos clínicos." },
   nomenclatura: { title: "Nomenclatura", description: "Catálogo de prestaciones y nomenclatura clínica." },
   convenios: { title: "Convenios", description: "Convenios con aseguradoras, FONASA e isapres." },

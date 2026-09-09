@@ -2395,6 +2395,23 @@ textarea[aria-invalid="true"] {
 .session-type-optional { color: var(--muted); font-weight: 500; }
 @media (max-width: 700px) { .session-types-heading { align-items: stretch; flex-direction: column; } .session-types-heading .button { width: 100%; } .session-types-table th, .session-types-table td { padding-inline: 0.8rem; } .session-type-edit span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } }
 
+/* Box uses the shared session-type list and dialog structure; only its user selector is scoped here. */
+.box-empty > svg { width: 30px; height: 30px; fill: none; stroke: var(--accent); stroke-width: 1.7; }
+.box-field-label { color: var(--ink); }
+.box-users-trigger { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; min-height: 58px; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); text-align: start; }
+.box-users-trigger > span { display: grid; gap: 0.2rem; min-width: 0; }
+.box-users-trigger strong { font-size: 0.8rem; }
+.box-users-trigger small { color: var(--muted); font-size: 0.68rem; font-weight: 400; }
+.box-users-trigger svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; transition: transform 160ms ease; }
+.box-users-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
+.box-users-popover { display: grid; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); overflow: hidden; }
+.box-user-search { padding: 0.65rem; border-block-end: 1px solid var(--border); }
+.box-user-list { max-height: 15rem; padding-inline: 0.75rem; overflow-y: auto; }
+.box-user-row { min-height: 64px; }
+.box-user-row input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: var(--accent); }
+.box-users-empty { margin: 0; padding: 1rem 0; color: var(--muted); font-size: 0.78rem; font-weight: 500; }
+.box-users-status { margin: 0; color: var(--muted); font-size: 0.72rem; font-weight: 500; line-height: 1.45; }
+
 /* Agenda global view, box combobox and appointment status legend */
 .agenda-box-combobox { position: relative; width: min(18rem, 100%); }
 .agenda-box-combobox input { width: 100%; min-height: 42px; padding: 0.45rem 0.7rem; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--ink); font: 600 0.8rem var(--font-ui); }
