@@ -12,6 +12,7 @@ type AgendaOnlineSettings = {
   postBookingMessage: string;
   arrivalInstructions: string;
   professionalIds: string[];
+  professionalSessionTypes: Record<string, string[]>;
 };
 
 type Professional = {
@@ -20,6 +21,8 @@ type Professional = {
   email: string;
   role: "organization_admin" | "professional" | "independent_owner";
 };
+
+type SessionType = { id: string; name: string; durationMinutes: number };
 
 type TabId = "status" | "customization" | "professionals";
 
@@ -48,9 +51,10 @@ function SectionIcon({ kind }: { kind: "status" | "link" | "customization" | "pr
   return <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5M12 16h.01" /></svg>;
 }
 
-export function AgendaOnlinePage({ settings, professionals, updateAction }: {
+export function AgendaOnlinePage({ settings, professionals, sessionTypes, updateAction }: {
   settings: AgendaOnlineSettings;
   professionals: Professional[];
+  sessionTypes: SessionType[];
   updateAction: (formData: FormData) => Promise<void>;
 }) {
   const [activeTab, setActiveTab] = useState<TabId>("status");
@@ -58,6 +62,11 @@ export function AgendaOnlinePage({ settings, professionals, updateAction }: {
   const [slug, setSlug] = useState(settings.slug);
   const [themeColor, setThemeColor] = useState(settings.themeColor);
   const [professionalIds, setProfessionalIds] = useState(settings.professionalIds.filter((id) => professionals.some((professional) => professional.id === id)));
+  const [professionalSessionTypes, setProfessionalSessionTypes] = useState<Record<string, string[]>>(() => Object.fromEntries(
+    Object.entries(settings.professionalSessionTypes ?? {})
+      .filter(([professionalId]) => settings.professionalIds.includes(professionalId) && professionals.some(({ id }) => id === professionalId))
+      .map(([professionalId, ids]) => [professionalId, [...new Set(ids)].filter((id) => sessionTypes.some((type) => type.id === id))]),
+  ));
   const locked = !enabled;
   const slugIsValid = slug.length >= 3 && SLUG_PATTERN.test(slug);
   const colorIsValid = HEX_PATTERN.test(themeColor);
@@ -65,7 +74,36 @@ export function AgendaOnlinePage({ settings, professionals, updateAction }: {
   const professionalNoun = professionals.length === 1 ? "profesional habilitado" : "profesionales habilitados";
 
   function toggleProfessional(id: string) {
-    setProfessionalIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+    setProfessionalIds((current) => {
+      if (!current.includes(id)) return [...current, id];
+      setProfessionalSessionTypes((assignments) => {
+        const next = { ...assignments };
+        delete next[id];
+        return next;
+      });
+      return current.filter((item) => item !== id);
+    });
+  }
+
+  function toggleSessionType(professionalId: string, sessionTypeId: string) {
+    setProfessionalSessionTypes((current) => {
+      const selected = current[professionalId] ?? [];
+      return {
+        ...current,
+        [professionalId]: selected.includes(sessionTypeId)
+          ? selected.filter((id) => id !== sessionTypeId)
+          : [...selected, sessionTypeId],
+      };
+    });
+  }
+
+  function toggleAllProfessionals() {
+    if (professionalIds.length > 0) {
+      setProfessionalIds([]);
+      setProfessionalSessionTypes({});
+      return;
+    }
+    setProfessionalIds(professionals.map(({ id }) => id));
   }
 
   return (
@@ -116,14 +154,18 @@ export function AgendaOnlinePage({ settings, professionals, updateAction }: {
       </section>
 
       <section className="agenda-online-panel settings-card" id="agenda-online-panel-professionals" role="tabpanel" aria-labelledby="agenda-online-tab-professionals" hidden={activeTab !== "professionals"}>
-        <header className="agenda-online-section-heading"><h2><SectionIcon kind="professionals" />Profesionales habilitados</h2><p className="muted">Elige quiénes pueden recibir reservas desde la agenda online</p></header>
+        <header className="agenda-online-section-heading"><h2><SectionIcon kind="professionals" />Profesionales habilitados</h2><p className="muted">Selecciona los profesionales que recibirán reservas y los tipos de sesión que ofrecerán en línea.</p></header>
         {locked && <p className="muted">Activa Agenda Online para configurar esta sección.</p>}
         <input type="hidden" name="professionalIds" value={JSON.stringify(professionalIds)} />
-        <p className="agenda-online-counter">{professionalIds.length} de {professionals.length} {professionalNoun}</p>
+        <input type="hidden" name="professionalSessionTypes" value={JSON.stringify(Object.fromEntries(Object.entries(professionalSessionTypes).filter(([id]) => professionalIds.includes(id))))} />
+        <div className="agenda-online-professional-toolbar"><p className="agenda-online-counter">{professionalIds.length} de {professionals.length} {professionalNoun}</p>{professionals.length > 0 && <div className="agenda-online-professional-actions"><button type="button" className="agenda-online-bulk-action" onClick={toggleAllProfessionals} disabled={locked}>{professionalIds.length > 0 ? "Deshabilitar todos" : "Habilitar todos"}</button><button type="submit" className="button button-primary" disabled={locked}>Guardar cambios</button></div>}</div>
         {professionals.length > 0 ? <div className="agenda-online-professional-list">{professionals.map((professional) => (
-          <label className="agenda-online-professional-row" key={professional.id}><span className="agenda-online-avatar" aria-hidden="true">{professional.name.trim().charAt(0).toUpperCase()}</span><span className="agenda-online-professional-copy"><span className="agenda-online-professional-name">{professional.name}<span className="agenda-online-badge">{roleLabel(professional.role)}</span></span><span className="agenda-online-setting-description">{professional.email}</span></span><span className="perm-switch"><input type="checkbox" role="switch" checked={professionalIds.includes(professional.id)} onChange={() => toggleProfessional(professional.id)} disabled={locked} aria-label={`Habilitar reservas para ${professional.name}`} /><span className="perm-switch-track" aria-hidden="true"><span /></span></span></label>
+          <div className="agenda-online-professional-item" key={professional.id}>
+            <label className="agenda-online-professional-row"><span className="agenda-online-avatar" aria-hidden="true">{professional.name.trim().charAt(0).toUpperCase()}</span><span className="agenda-online-professional-copy"><span className="agenda-online-professional-name">{professional.name}<span className="agenda-online-badge">{roleLabel(professional.role)}</span></span><span className="agenda-online-setting-description">{professional.email}</span></span><span className="perm-switch"><input type="checkbox" role="switch" checked={professionalIds.includes(professional.id)} onChange={() => toggleProfessional(professional.id)} disabled={locked} aria-label={`Habilitar reservas para ${professional.name}`} /><span className="perm-switch-track" aria-hidden="true"><span /></span></span></label>
+            {professionalIds.includes(professional.id) && <div className="agenda-online-session-types"><strong>Tipos de sesión disponibles para este profesional</strong>{(professionalSessionTypes[professional.id]?.length ?? 0) === 0 && <p className="muted">Sin tipos asignados. El profesional no podrá recibir reservas en línea hasta que elijas al menos uno.</p>}{sessionTypes.length > 0 ? <div className="agenda-online-session-type-list">{sessionTypes.map((sessionType) => <label className="agenda-online-session-type-row" key={sessionType.id}><input type="checkbox" checked={(professionalSessionTypes[professional.id] ?? []).includes(sessionType.id)} onChange={() => toggleSessionType(professional.id, sessionType.id)} disabled={locked} /><span>{sessionType.name}</span><span className="muted">{sessionType.durationMinutes} min</span></label>)}</div> : <p className="muted">No hay tipos de sesión activos disponibles.</p>}</div>}
+          </div>
         ))}</div> : <div className="agenda-online-empty"><SectionIcon kind="professionals" /><strong>No hay profesionales habilitables.</strong><p>Agrega un profesional con rol activo para habilitarlo</p><Link className="button button-secondary" href="/settings/members">Agregar profesional</Link></div>}
-        <div className="settings-card-actions agenda-online-actions"><button type="submit" className="button button-primary" disabled={locked}>Guardar cambios</button></div>
+        <Link className={`agenda-online-session-types-help${locked ? " is-disabled" : ""}`} href={locked ? "#" : "/settings/tipos-sesion"} aria-disabled={locked} tabIndex={locked ? -1 : undefined}>+ ¿Necesitas crear más tipos de sesión? Ir a Tipos de Sesión</Link>
       </section>
     </form>
   );

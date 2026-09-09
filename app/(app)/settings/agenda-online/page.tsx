@@ -13,6 +13,7 @@ type AgendaOnlineSettings = {
   postBookingMessage: string;
   arrivalInstructions: string;
   professionalIds: string[];
+  professionalSessionTypes: Record<string, string[]>;
 };
 
 type OrganizationSettings = {
@@ -27,6 +28,8 @@ type ProfessionalRow = {
   role: "organization_admin" | "professional" | "independent_owner";
 };
 
+type SessionTypeRow = { id: string; name: string; durationMinutes: number };
+
 const DEFAULT_SETTINGS: AgendaOnlineSettings = {
   enabled: false,
   slug: "",
@@ -36,11 +39,12 @@ const DEFAULT_SETTINGS: AgendaOnlineSettings = {
   postBookingMessage: "",
   arrivalInstructions: "",
   professionalIds: [],
+  professionalSessionTypes: {},
 };
 
 export default async function AgendaOnlineSettingsPage({ searchParams }: { searchParams: Promise<{ ok?: string }> }) {
   const [{ ok }, actor] = await Promise.all([searchParams, requestTenantContext()]);
-  const [organization, professionals] = await runAsTenant(sql, actor, async (tx) => Promise.all([
+  const [organization, professionals, sessionTypes] = await runAsTenant(sql, actor, async (tx) => Promise.all([
     tx<Array<{ settings: OrganizationSettings | null }>>`
       SELECT settings FROM organizations WHERE id = ${actor.organizationId}
     `,
@@ -52,6 +56,12 @@ export default async function AgendaOnlineSettingsPage({ searchParams }: { searc
         AND m.status = 'active'
         AND m.role IN ('professional', 'independent_owner', 'organization_admin')
       ORDER BY u.name ASC
+    `,
+    tx<SessionTypeRow[]>`
+      SELECT id, name, duration_minutes AS "durationMinutes"
+      FROM session_types
+      WHERE organization_id = ${actor.organizationId} AND active = true
+      ORDER BY name ASC
     `,
   ]));
   if (!organization[0]) throw new Error("La organización no está disponible.");
@@ -68,7 +78,7 @@ export default async function AgendaOnlineSettingsPage({ searchParams }: { searc
       {ok === "agenda-online" && (
         <p className="inline-notice notice-banner" role="status">Configuración de agenda online actualizada.</p>
       )}
-      <AgendaOnlinePage settings={settings} professionals={professionals} updateAction={updateAgendaOnlineSettings} />
+      <AgendaOnlinePage settings={settings} professionals={professionals} sessionTypes={sessionTypes} updateAction={updateAgendaOnlineSettings} />
     </main>
   );
 }

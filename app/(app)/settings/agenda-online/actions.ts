@@ -15,6 +15,7 @@ type AgendaOnlineSettings = {
   postBookingMessage: string;
   arrivalInstructions: string;
   professionalIds: string[];
+  professionalSessionTypes: Record<string, string[]>;
 };
 
 type OrganizationSettings = {
@@ -47,6 +48,29 @@ function readProfessionalIds(formData: FormData) {
     throw new Error("La selección de profesionales no es válida.");
   }
   return [...new Set(value.filter((id) => UUID_PATTERN.test(id)))];
+}
+
+function readProfessionalSessionTypes(formData: FormData) {
+  const raw = String(formData.get("professionalSessionTypes") ?? "{}");
+  let value: unknown;
+  try {
+    value = JSON.parse(raw);
+  } catch {
+    throw new Error("La selección de tipos de sesión por profesional no es válida.");
+  }
+  if (
+    typeof value !== "object"
+    || value === null
+    || Array.isArray(value)
+    || !Object.entries(value).every(([membershipId, sessionTypeIds]) => (
+      UUID_PATTERN.test(membershipId)
+      && Array.isArray(sessionTypeIds)
+      && sessionTypeIds.every((id) => typeof id === "string" && UUID_PATTERN.test(id))
+    ))
+  ) {
+    throw new Error("La selección de tipos de sesión por profesional no es válida.");
+  }
+  return value as Record<string, string[]>;
 }
 
 export async function updateAgendaOnlineSettings(formData: FormData): Promise<void> {
@@ -99,17 +123,36 @@ export async function updateAgendaOnlineSettings(formData: FormData): Promise<vo
   }
 
   const requestedProfessionalIds = readProfessionalIds(formData);
-  const professionalIds = await runAsTenant(sql, actor, async (tx) => {
-    if (requestedProfessionalIds.length === 0) return [];
-    const rows = await tx<Array<{ id: string }>>`
-      SELECT id
-      FROM memberships
+  const requestedProfessionalSessionTypes = readProfessionalSessionTypes(formData);
+  const { professionalIds, professionalSessionTypes } = await runAsTenant(sql, actor, async (tx) => {
+    const professionalRows = requestedProfessionalIds.length === 0 ? [] : await tx<Array<{ id: string }>>`
+      SELECT id FROM memberships
       WHERE id = ANY(${requestedProfessionalIds}::uuid[])
-        AND organization_id = ${actor.organizationId}
-        AND status = 'active'
+        AND organization_id = ${actor.organizationId} AND status = 'active'
         AND role IN ('professional', 'independent_owner', 'organization_admin')
     `;
-    return rows.map((row) => row.id);
+    const validatedProfessionalIds = professionalRows.map((row) => row.id);
+    const enabledProfessionalIds = new Set(validatedProfessionalIds);
+    const requestedSessionTypeIds = [...new Set(
+      Object.entries(requestedProfessionalSessionTypes)
+        .filter(([membershipId]) => enabledProfessionalIds.has(membershipId))
+        .flatMap(([, ids]) => ids),
+    )];
+    const sessionTypeRows = requestedSessionTypeIds.length === 0 ? [] : await tx<Array<{ id: string }>>`
+      SELECT id FROM session_types
+      WHERE id = ANY(${requestedSessionTypeIds}::uuid[])
+        AND organization_id = ${actor.organizationId} AND active = true
+    `;
+    const validSessionTypeIds = new Set(sessionTypeRows.map((row) => row.id));
+    const filteredAssignments = Object.fromEntries(
+      validatedProfessionalIds
+        .filter((membershipId) => Object.hasOwn(requestedProfessionalSessionTypes, membershipId))
+        .map((membershipId) => [
+          membershipId,
+          [...new Set(requestedProfessionalSessionTypes[membershipId])].filter((id) => validSessionTypeIds.has(id)),
+        ]),
+    );
+    return { professionalIds: validatedProfessionalIds, professionalSessionTypes: filteredAssignments };
   });
 
   const agendaOnline: AgendaOnlineSettings = {
@@ -121,6 +164,7 @@ export async function updateAgendaOnlineSettings(formData: FormData): Promise<vo
     postBookingMessage: readText(formData, "postBookingMessage", 300, "El mensaje posterior a la reserva"),
     arrivalInstructions: readText(formData, "arrivalInstructions", 500, "Las instrucciones para llegar"),
     professionalIds,
+    professionalSessionTypes,
   };
 
   await runAsTenant(sql, actor, async (tx) => {

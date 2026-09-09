@@ -2492,13 +2492,30 @@ textarea[aria-invalid="true"] {
 .agenda-online-fields { display: grid; gap: 1.15rem; padding-block-start: 1rem; border-block-start: 1px solid var(--border); }
 .agenda-online-color-row { display: grid; grid-template-columns: 52px minmax(8rem, 12rem); align-items: center; gap: 0.65rem; }
 .agenda-online-color-picker { width: 52px; height: 44px; padding: 4px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); cursor: pointer; }
-.agenda-online-counter { margin: 0; padding: 0.85rem 0; border-block: 1px solid var(--border); color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+.agenda-online-professional-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.7rem 0; border-block: 1px solid var(--border); }
+.agenda-online-counter { margin: 0; color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+.agenda-online-professional-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; }
+.agenda-online-professional-actions .button { min-height: 44px; white-space: nowrap; }
+.agenda-online-bulk-action { min-height: 44px; padding: 0.5rem 0.25rem; border: 0; background: transparent; color: var(--accent); font: 700 0.82rem var(--font-ui); cursor: pointer; text-decoration: underline; text-underline-offset: 0.2em; }
+.agenda-online-bulk-action:hover { color: var(--accent-strong); }
+.agenda-online-bulk-action:active { transform: scale(0.98); }
+.agenda-online-bulk-action:focus-visible, .agenda-online-session-types-help:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .agenda-online-professional-list { display: grid; }
+.agenda-online-professional-item + .agenda-online-professional-item { border-block-start: 1px solid var(--border); }
 .agenda-online-professional-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 0.85rem; min-height: 72px; padding: 0.75rem 0; cursor: pointer; }
-.agenda-online-professional-row + .agenda-online-professional-row { border-block-start: 1px solid var(--border); }
 .agenda-online-avatar { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 10px; background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); color: var(--accent); font: 700 0.9rem var(--font-display); }
 .agenda-online-professional-name { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
 .agenda-online-badge { display: inline-flex; align-items: center; min-height: 22px; padding: 0.15rem 0.5rem; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 0.7rem; font-weight: 600; }
+.agenda-online-session-types { display: grid; gap: 0.65rem; margin: 0 0 0.85rem 3.4rem; padding: 0.9rem 1rem; border-radius: 8px; background: var(--surface-2); }
+.agenda-online-session-types > strong { color: var(--ink); font-size: 0.82rem; line-height: 1.4; }
+.agenda-online-session-types > p { margin: 0; font-size: 0.77rem; line-height: 1.45; }
+.agenda-online-session-type-list { display: grid; }
+.agenda-online-session-type-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 0.65rem; min-height: 36px; padding: 0.3rem 0; color: var(--ink); font-size: 0.82rem; cursor: pointer; }
+.agenda-online-session-type-row + .agenda-online-session-type-row { border-block-start: 1px solid var(--border); }
+.agenda-online-session-type-row input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); }
+.agenda-online-session-types-help { display: inline-flex; width: fit-content; margin-block: 0.85rem 1rem; color: var(--accent); font-size: 0.8rem; font-weight: 650; text-decoration: none; }
+.agenda-online-session-types-help:hover { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 0.2em; }
+.agenda-online-session-types-help.is-disabled { color: color-mix(in srgb, var(--muted) 70%, var(--bg)); pointer-events: none; }
 .agenda-online-empty { display: grid; justify-items: center; gap: 0.55rem; padding: 2.2rem 1rem; text-align: center; }
 .agenda-online-empty > svg { width: 30px; height: 30px; }
 .agenda-online-empty strong { font: 700 0.98rem var(--font-display); }
@@ -2536,6 +2553,10 @@ textarea[aria-invalid="true"] {
 }
 .agenda-online-locked .agenda-online-badge { border-color: color-mix(in srgb, var(--border) 70%, var(--bg)); color: color-mix(in srgb, var(--muted) 75%, var(--bg)); }
 .agenda-online-locked .agenda-online-professional-row { cursor: not-allowed; }
+.agenda-online-locked .agenda-online-session-types { background: color-mix(in srgb, var(--surface-2) 58%, var(--bg)); }
+.agenda-online-locked .agenda-online-session-types > strong,
+.agenda-online-locked .agenda-online-session-type-row { color: color-mix(in srgb, var(--muted) 78%, var(--bg)); cursor: not-allowed; }
+.agenda-online-bulk-action:disabled { color: color-mix(in srgb, var(--muted) 70%, var(--bg)); cursor: not-allowed; text-decoration: none; }
 .agenda-online-form :is(input, textarea, select):disabled {
   border-color: color-mix(in srgb, var(--border) 68%, var(--bg));
   background: color-mix(in srgb, var(--surface) 72%, var(--bg));
@@ -2567,6 +2588,7 @@ textarea[aria-invalid="true"] {
 @media (prefers-reduced-motion: reduce) {
   .agenda-online-tab, .agenda-online-tab::after { transition: none; }
   .agenda-online-public-url-box a:active { transform: none; }
+  .agenda-online-bulk-action:active { transform: none; }
 }
 
 @media (max-width: 680px) {
@@ -2575,4 +2597,7 @@ textarea[aria-invalid="true"] {
   .agenda-online-url-control { display: grid; }
   .agenda-online-url-control input { border-radius: 8px 8px 0 0 !important; }
   .agenda-online-url-suffix { justify-content: flex-start; border-inline-start: 1px solid var(--border); border-block-start: 0; border-radius: 0 0 8px 8px; white-space: normal; overflow-wrap: anywhere; }
+  .agenda-online-professional-toolbar { align-items: stretch; flex-direction: column; }
+  .agenda-online-professional-actions { justify-content: space-between; }
+  .agenda-online-session-types { margin-inline-start: 0; }
 }
