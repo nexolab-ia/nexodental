@@ -1981,7 +1981,7 @@ textarea[aria-invalid="true"] {
 @media (max-width: 420px) { .week-chart { gap: 0.25rem; grid-template-columns: repeat(7, minmax(0, 1fr)); } .week-date { font-size: 0.58rem; } }
 
 /* Members */
-.members-page { display: grid; gap: 16px; width: 100%; }
+.members-page { display: grid; gap: 16px; width: 100%; padding: 0; }
 .members-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-block-end: 0.25rem; }
 .members-heading h1, .members-heading p { margin: 0; }
 .members-heading p { margin-block-start: 0.4rem; }
