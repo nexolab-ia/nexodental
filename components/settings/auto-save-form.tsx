@@ -44,31 +44,26 @@ export function AutoSaveForm({ action, children, successKey }: AutoSaveFormProps
   function programarGuardado() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (ocultarRef.current) clearTimeout(ocultarRef.current);
-    debounceRef.current = setTimeout(() => formRef.current?.requestSubmit(), DEMORA_GUARDADO_MS);
-  }
 
-  async function guardar(formData: FormData) {
-    setEstado("guardando");
-    try {
-      await action(formData);
-      setEstado("guardado");
-      ocultarDespues();
-    } catch {
-      setEstado("error");
-      ocultarDespues();
+    const formulario = formRef.current;
+    if (!formulario?.checkValidity()) {
+      formulario?.reportValidity();
+      return;
     }
+
+    setEstado("guardando");
+    debounceRef.current = setTimeout(() => formulario.requestSubmit(), DEMORA_GUARDADO_MS);
   }
 
   function manejarEnvio(evento: FormEvent<HTMLFormElement>) {
     if (!evento.currentTarget.checkValidity()) {
       evento.preventDefault();
-      setEstado("error");
-      ocultarDespues();
+      evento.currentTarget.reportValidity();
     }
   }
 
   return (
-    <form ref={formRef} action={guardar} onChange={programarGuardado} onSubmit={manejarEnvio} className="auto-save-form">
+    <form ref={formRef} action={action} onChange={programarGuardado} onSubmit={manejarEnvio} className="auto-save-form">
       <span className={`auto-save-status auto-save-status-${estado}`} role="status" aria-live="polite">
         {estado === "guardando" && "Guardando…"}
         {estado === "guardado" && <><svg aria-hidden="true" viewBox="0 0 16 16"><path d="m3 8.2 3 3L13 4.8" /></svg>Guardado</>}
