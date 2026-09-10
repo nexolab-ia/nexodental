@@ -95,22 +95,23 @@ export function MembersPage({ members, professionalLimit, professionalUsage }: {
 
     {notice && <p className="billing-inline-notice" role="status">{notice}</p>}
 
-    <div className="members-tabs" role="tablist" aria-label="Usuarios">
-      <MemberTabButton active={activeTab === "all"} count={members.length} id="all" label="Todos" onClick={setActiveTab} onKeyDown={moveTab} tabRef={(element) => { tabRefs.current[0] = element; }} />
-      <MemberTabButton active={activeTab === "active"} count={activeMembers} id="active" label="Activos" onClick={setActiveTab} onKeyDown={moveTab} tabRef={(element) => { tabRefs.current[1] = element; }} />
-      <MemberTabButton active={activeTab === "invitations"} count={invitations.length} id="invitations" label="Invitaciones" onClick={setActiveTab} onKeyDown={moveTab} tabRef={(element) => { tabRefs.current[2] = element; }} />
+    <div className="members-filter-row">
+      {activeTab !== "invitations" && <div className="members-filter-controls">
+        <label className="members-role-filter">
+          <span className="sr-only">Filtrar por rol</span>
+          <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}>
+            <option value="all">Todos los roles</option>
+            {MEMBER_ROLE_OPTIONS.map((role) => <option key={role} value={role}>{role}</option>)}
+          </select>
+        </label>
+        <p className="muted members-professional-usage">{professionalUsage} de {professionalLimit} profesionales utilizados</p>
+      </div>}
+      <div className="members-tabs" role="tablist" aria-label="Usuarios">
+        <MemberTabButton active={activeTab === "all"} count={members.length} id="all" label="Todos" onClick={setActiveTab} onKeyDown={moveTab} tabRef={(element) => { tabRefs.current[0] = element; }} />
+        <MemberTabButton active={activeTab === "active"} count={activeMembers} id="active" label="Activos" onClick={setActiveTab} onKeyDown={moveTab} tabRef={(element) => { tabRefs.current[1] = element; }} />
+        <MemberTabButton active={activeTab === "invitations"} count={invitations.length} id="invitations" label="Invitaciones" onClick={setActiveTab} onKeyDown={moveTab} tabRef={(element) => { tabRefs.current[2] = element; }} />
+      </div>
     </div>
-
-    {activeTab !== "invitations" && <div className="members-filter-row">
-      <label className="members-role-filter">
-        <span className="sr-only">Filtrar por rol</span>
-        <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}>
-          <option value="all">Todos los roles</option>
-          {MEMBER_ROLE_OPTIONS.map((role) => <option key={role} value={role}>{role}</option>)}
-        </select>
-      </label>
-      <p className="muted members-professional-usage">{professionalUsage} de {professionalLimit} profesionales utilizados</p>
-    </div>}
 
     <section className="members-list" id="members-all-panel" role="tabpanel" aria-labelledby="members-all-tab" hidden={activeTab !== "all"}>
       <MembersList members={filteredAllMembers} onDetails={(member, trigger) => { absencesTriggerRef.current = trigger; setAbsencesMember(member); }} onSchedule={(member, trigger) => { scheduleTriggerRef.current = trigger; setScheduleMember(member); }} />
