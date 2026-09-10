@@ -2858,7 +2858,7 @@ textarea[aria-invalid="true"] {
 .app-compact .topbar-desktop-nav .primary-nav a { min-height: 30px; padding: 0.25rem 0.6rem; }
 .app-compact .topbar-actions .icon-button { width: 30px; height: 30px; min-width: 30px; }
 .app-compact .topbar-actions .icon-button svg { width: 16px; height: 16px; }
-.app-compact .settings-layout { grid-template-columns: 10.5rem minmax(0, 1fr); max-width: 72rem; }
+.app-compact .settings-layout { grid-template-columns: 10.5rem minmax(0, 1fr); }
 .app-compact .settings-nav a { position: relative; font-size: 11.5px; }
 .app-compact .settings-nav a[aria-current="page"]::after {
   position: absolute;
