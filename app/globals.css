@@ -1767,6 +1767,18 @@ textarea[aria-invalid="true"] {
   width: 100%;
   padding: 0;
 }
+.billing-page .settings-card,
+.billing-page .plan-stat,
+.billing-page .billing-history {
+  border: 1px solid #202a3a;
+  border-radius: 8px;
+  background: #101827;
+}
+.billing-page .settings-card > header {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
 .billing-heading {
   margin-block-end: 0.25rem;
 }
@@ -1788,8 +1800,8 @@ textarea[aria-invalid="true"] {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  min-height: 44px;
-  padding: 0.65rem 0.85rem;
+  min-height: 33px;
+  padding: 0 0.85rem;
   border: 0;
   border-radius: 0;
   border-block-end: 2px solid transparent;
@@ -1825,7 +1837,7 @@ textarea[aria-invalid="true"] {
 .badge-active { display: inline-flex; align-items: center; gap: 0.35rem; flex: none; padding: 0.2rem 0.55rem; border: 1px solid color-mix(in srgb, var(--success) 42%, var(--border)); border-radius: 999px; background: color-mix(in srgb, var(--success) 15%, var(--surface)); color: var(--success); font-size: 0.75rem; font-weight: 700; }
 .badge-active > span { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .plan-stats-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
-.plan-stat { display: grid; gap: 0.25rem; min-height: 7.75rem; padding: 0.9rem; background: var(--surface-2); }
+.billing-page .plan-stat { display: grid; gap: 0.25rem; height: 124px; padding: 0.9rem; }
 .plan-stat-label { color: var(--muted); font-size: 0.78rem; font-weight: 600; }
 .stat-number { font: 700 1.75rem/1 var(--font-display); color: var(--ink); font-variant-numeric: tabular-nums; }
 .stat-text { font-size: 1.3rem; align-self: center; }
@@ -1838,7 +1850,7 @@ textarea[aria-invalid="true"] {
 .billing-icon { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .billing-inline-notice, .billing-success-banner { margin: 0; padding: 0.75rem 0.85rem; border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius: 10px; background: color-mix(in srgb, var(--accent) 9%, var(--surface)); color: var(--ink); font-size: 0.85rem; }
 .billing-success-banner { border-color: color-mix(in srgb, var(--success) 45%, var(--border)); background: color-mix(in srgb, var(--success) 10%, var(--surface)); color: var(--success); }
-.billing-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+.billing-page .billing-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
 .plan-detail-card { align-content: start; }
 .plan-professionals-row, .monthly-breakdown > div, .billing-total { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
 .plan-professionals-row { padding-block-end: 1rem; border-block-end: 1px solid var(--border); }
@@ -1875,7 +1887,7 @@ textarea[aria-invalid="true"] {
 .billing-transfer-button { background: transparent; color: var(--ink); }
 .billing-transfer-button:hover { color: var(--accent); }
 .plan-subtabs { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.plan-subtabs > button { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; min-height: 44px; padding: 0.55rem 0.9rem; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font-weight: 700; }
+.billing-page .plan-subtabs > button { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; min-height: 44px; padding: 0.55rem 0.9rem; border: 1px solid var(--border); border-radius: 10px; background: transparent; color: var(--muted); font-weight: 700; }
 .plan-subtabs > button:hover { background: var(--surface-2); color: var(--ink); }
 .plan-subtabs > button.is-active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--surface)); color: var(--accent); }
 .plan-subtabs > button:focus-visible, .stepper-btn:focus-visible, .billing-transfer-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -1917,7 +1929,7 @@ textarea[aria-invalid="true"] {
   .plan-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .billing-history-row { grid-template-columns: 0.8fr 1.7fr 0.8fr 0.9fr auto; align-items: center; gap: 0.75rem; }
 }
-@media (min-width: 880px) { .billing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 880px) { .billing-page .billing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 480px) { .professional-stepper-row { align-items: stretch; flex-direction: column; } .stepper-wrap { justify-items: start; } .stepper-wrap > .muted { text-align: start; } .plan-subtabs > button { flex: 1 1 100%; } .plan-overview-heading { align-items: flex-start; flex-direction: column; } .period-option { grid-template-columns: auto minmax(0, 1fr); } .period-price { grid-column: 2; justify-items: start; } }
 @media (prefers-reduced-motion: reduce) { .billing-page *, .billing-page *::before, .billing-page *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; } }
 .ia-grid { align-items: start; }
