@@ -1289,6 +1289,29 @@ textarea[aria-invalid="true"] {
 .form-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
 .settings-card-actions { display: flex; justify-content: flex-end; }
 .notice-banner { padding: 0.8rem 1rem; border: 1px solid color-mix(in srgb, var(--success) 45%, var(--border)); border-radius: 10px; background: color-mix(in srgb, var(--success) 10%, var(--surface)); }
+.auto-save-form { position: relative; min-width: 0; }
+.auto-save-status {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: 1rem;
+  inset-inline-end: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+.auto-save-status-guardando,
+.auto-save-status-guardado,
+.auto-save-status-error { opacity: 1; }
+.auto-save-status-guardado { color: var(--success); }
+.auto-save-status-error { color: var(--danger); }
+.auto-save-status svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: reduce) { .auto-save-status { transition: none; } }
 
 .permissions-settings { display: grid; gap: 1rem; width: 100%; padding: 0; }
 .permissions-form { display: grid; gap: 1rem; }
@@ -3010,7 +3033,6 @@ textarea[aria-invalid="true"] {
     padding: 12px 16px;
     border-block-end: 1px solid #202a3a;
   }
-  .app-compact .organization-profile-card { height: 432px; }
   .app-compact .organization-logo-row,
   .app-compact .organization-logo-row .logo-picker { gap: 16px; }
   .app-compact .logo-preview {
@@ -3055,22 +3077,8 @@ textarea[aria-invalid="true"] {
     line-height: 20px;
   }
   .app-compact .organization-profile-card .organization-fields {
-    height: 168px;
-    margin: 16px 16px 0;
+    margin: 24px 16px;
   }
-  .app-compact .organization-profile-card .settings-card-actions {
-    height: 36px;
-    margin: 13px 16px 16px;
-  }
-  .app-compact .organization-settings .settings-card-actions .button { min-height: 36px; }
-  .app-compact .organization-schedule-card {
-    position: relative;
-    height: 155px;
-  }
+  .app-compact .organization-profile-card .organization-col { gap: 16px; }
   .app-compact .organization-schedule-card .organization-hours { margin: 16px; }
-  .app-compact .organization-schedule-card .settings-card-actions {
-    position: absolute;
-    inset-block-start: 14px;
-    inset-inline-end: 16px;
-  }
 }

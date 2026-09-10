@@ -1,5 +1,6 @@
 import { COUNTRY_OPTIONS } from "@/app/onboarding/regions";
 import { PhoneField } from "@/components/forms/phone-field";
+import { AutoSaveForm } from "@/components/settings/auto-save-form";
 import { OrgLogoPicker } from "@/components/settings/org-logo-picker";
 import { sql } from "@/db/client";
 import { requestTenantContext } from "@/lib/request-context";
@@ -12,8 +13,8 @@ type OrganizationSettings = {
   logo?: string;
 };
 
-export default async function OrganizacionPage({ searchParams }: { searchParams: Promise<{ ok?: string }> }) {
-  const [{ ok }, actor] = await Promise.all([searchParams, requestTenantContext()]);
+export default async function OrganizacionPage() {
+  const actor = await requestTenantContext();
   const organization = await runAsTenant(sql, actor, async (tx) => (await tx<Array<{
     name: string;
     settings: OrganizationSettings | null;
@@ -34,10 +35,7 @@ export default async function OrganizacionPage({ searchParams }: { searchParams:
         <span>Ayuda</span>
       </a>
     </header>
-    {ok === "profile" && <p className="inline-notice notice-banner" role="status">Datos de la clínica actualizados.</p>}
-    {ok === "schedule" && <p className="inline-notice notice-banner" role="status">Horario de atención actualizado.</p>}
-
-    <form action={updateOrganizationProfile}><section className="settings-card organization-profile-card">
+    <AutoSaveForm action={updateOrganizationProfile} successKey="profile"><section className="settings-card organization-profile-card">
       <header className="organization-card-heading">
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10M8 7h4M8 11h4M8 15h4M3 21h18"/></svg>
         <div><h2>Información de la clínica</h2><p className="muted">Imagen, datos básicos y de contacto.</p></div>
@@ -64,10 +62,9 @@ export default async function OrganizacionPage({ searchParams }: { searchParams:
           <PhoneField name="secondaryPhone" label="Teléfono secundario" initialValue={contact.secondaryPhone} optional/>
         </div>
       </div>
-      <div className="settings-card-actions"><button type="submit" className="button button-primary">Guardar cambios</button></div>
-    </section></form>
+    </section></AutoSaveForm>
 
-    <form action={updateOrganizationSchedule}><section className="settings-card organization-schedule-card">
+    <AutoSaveForm action={updateOrganizationSchedule} successKey="schedule"><section className="settings-card organization-schedule-card">
       <header className="organization-card-heading">
         <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
         <div><h2>Horarios de Atención</h2><p className="muted">Define el horario de apertura y cierre de la clínica.</p></div>
@@ -76,7 +73,6 @@ export default async function OrganizacionPage({ searchParams }: { searchParams:
         <label>Hora de apertura<input type="time" name="openTime" defaultValue={schedule.openTime ?? ""} required/></label>
         <label>Hora de cierre<input type="time" name="closeTime" defaultValue={schedule.closeTime ?? ""} required/></label>
       </div>
-      <div className="settings-card-actions"><button type="submit" className="button button-primary">Guardar horario</button></div>
-    </section></form>
+    </section></AutoSaveForm>
   </main>;
 }

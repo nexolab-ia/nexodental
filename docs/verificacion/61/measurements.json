@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "brief": "BRIEF-CODEX-61",
+    "spec": "BRIEF-CODEX-61 / DESIGN.md §4.1 — paridad 1:1 con cimaos",
+    "referencia": "docs/referencias/organizacion-template-cimaos-1920.jpg",
+    "viewport": "1920x873 (DPR 1)",
+    "url": "/settings/organizacion",
+    "entorno": "produccion (dental.nexolabs.cloud)",
+    "nota": "Valores medidos en producción tras BRIEF-CODEX-61. Coinciden con el spec de Bryan salvo el +1px de topbar por el borde inferior."
+  },
+  "organizacion-1920x873": {
+    "topbar": { "x": 0, "y": 0, "width": 1920, "height": 49, "spec_esperado": 48 },
+    "sidebar": { "x": 0, "y": 49, "width": 208, "height": 878, "spec_esperado_ancho": 208 },
+    "contenido": { "x": 232, "y": 73, "width": 1664, "spec_esperado_x": 232, "spec_esperado_ancho": 1664 },
+    "titulo": { "x": 232, "y": 73, "height": 24, "fontSize": "16px", "fontWeight": 600 },
+    "tarjetaInformacion": { "x": 232, "y": 141, "width": 1664, "height": 432, "spec_esperado_y": 136 },
+    "headerTarjeta": { "x": 233, "y": 142, "width": 1662, "height": 65, "spec_esperado_alto": 65, "bordeInferior": true },
+    "logoPreview": { "x": 249, "y": 223, "width": 100, "height": 100, "spec_esperado": 100 },
+    "formulario": { "x": 249, "y": 339, "width": 1630, "height": 168, "columnas": 2, "columnGap": "16px" },
+    "input": { "height": 36, "padding": "4px 12px", "fontSize": "14px", "lineHeight": "20px" },
+    "bloqueLabelInput": { "height": 56, "gap": "8px" },
+    "tarjetaHorarios": { "x": 232, "y": 597, "width": 1664, "height": 155, "spec_esperado_y": 592 }
+  },
+  "estado_post_61": {
+    "botonesGuardar": "presentes (Guardar cambios al pie; Guardar horario en header) — a REMOVER en BRIEF-CODEX-62 para paridad cimaos",
+    "autoGuardado": "pendiente (BRIEF-CODEX-62)"
+  },
+  "corrige_a": {
+    "docs/verificacion/59/measurements.json": "topbar 40 (incorrecto), settingsLayout 1152 (incorrecto), settingsColumns 168px 968px (incorrecto), logoPreview 64 (incorrecto)"
+  }
+}

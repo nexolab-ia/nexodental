@@ -53,6 +53,18 @@ Solo usar tokens CSS existentes. NO inventar colores fuera de esta paleta:
 - Diálogos: patrón `<dialog>` nativo + `showModal`, backdrop oscurecido, sticky footer. Ya estándar en el repo (schedule/absences/members) — mantener.
 - Densidad: dashboard clínico real = usar el espacio; evitar 85% de pantalla vacía en vistas con datos (agenda, reportes). Si no hay contenido para llenar, proporcionar estados vacíos ricos, no vacío plano.
 
+### 4.1 Shell de Configuración y pantalla Organización (spec 1920×873)
+
+Paridad 1:1 con la referencia **cimaos** (`docs/referencias/organizacion-template-cimaos-1920.jpg`). Medidas obligatorias (viewport 1920×873, DPR 1), implementadas en `app/globals.css` dentro de `.app-compact` y `@media (min-width: 1100px)`:
+
+- **Topbar:** alto 48px; padding horizontal 16px; ítems de nav 32px de alto, gap 4px.
+- **Sidebar (nav de Configuración):** ancho 208px (13rem); padding 8px; borde derecho 1px. Títulos de grupo 24px (12px uppercase, padding 4px 12px); ítems 32px (padding 6px 12px); activo fondo `#202a3a`, radio 6px.
+- **Contenido:** empieza en x:208 con padding 24px (contenido útil 1664px). Título 16px semibold (alto 24px); subtítulo 12px; enlace "Ayuda" alineado a la derecha.
+- **Tarjeta:** bordes `#202a3a`, radio 8px, fondo `#101827`. Header de 65px (padding 12px 16px, borde inferior). Cuerpo con padding 16px. Separación entre tarjetas 24px.
+- **Tarjeta "Información de la clínica":** 1664×432px. Logo/imagen 100×100px (radio 8px). Formulario en 2 columnas de 807px (gap 16px). Bloque label+input de 56px (gap 8px); inputs 36px de alto, padding 4px 12px, 14px / line-height 20px.
+- **Tarjeta "Horarios de Atención":** 1664×155px. Dos campos (apertura/cierre) en 2 columnas de 807px.
+- **Sin botones de guardar (patrón cimaos):** las tarjetas NO muestran botón de guardar. Los formularios de esta pantalla **auto-guardan** al cambiar/salir de cada campo (debounce ~400-600ms) con un indicador transitorio y discreto ("Guardando…" / "Guardado") que desaparece solo (~2s). El header de la tarjeta queda vacío a la derecha en reposo. Otras pantallas de settings conservan sus botones.
+
 ## 5. Métricas y datos
 
 - Números con formato CLP (`$ 0`, `$12.500`), separador de miles y `.` decimal donde aplique.
