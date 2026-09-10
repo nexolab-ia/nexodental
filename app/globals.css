@@ -1775,9 +1775,13 @@ textarea[aria-invalid="true"] {
   background: #101827;
 }
 .billing-page .settings-card > header {
-  display: flex;
-  align-items: center;
   min-height: 44px;
+}
+.billing-page .plan-detail-card > header,
+.billing-page .billing-period-card > header,
+.billing-page .add-professionals-card > header {
+  display: grid;
+  align-content: center;
 }
 .billing-heading {
   margin-block-end: 0.25rem;
