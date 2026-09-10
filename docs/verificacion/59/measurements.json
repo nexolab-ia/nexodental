@@ -1,0 +1,130 @@
+{
+  "organizacion-1920x925": {
+    "url": "/settings/organizacion",
+    "topbar": {
+      "width": 1920,
+      "height": 40,
+      "left": 0,
+      "right": 1920
+    },
+    "settingsLayout": {
+      "width": 1152,
+      "height": 870.34375,
+      "left": 0,
+      "right": 1152
+    },
+    "settingsColumns": "168px 968px",
+    "headingFont": "17px",
+    "input": {
+      "width": 461.40625,
+      "height": 30,
+      "left": 199.390625,
+      "right": 660.796875
+    },
+    "logoPreview": {
+      "width": 64,
+      "height": 64,
+      "left": 199.390625,
+      "right": 263.390625
+    }
+  },
+  "notifications-1920x925": {
+    "url": "/settings/notifications",
+    "topbar": {
+      "width": 1920,
+      "height": 40,
+      "left": 0,
+      "right": 1920
+    },
+    "settingsLayout": {
+      "width": 1152,
+      "height": 870.34375,
+      "left": 0,
+      "right": 1152
+    },
+    "settingsColumns": "168px 968px",
+    "headingFont": "17px",
+    "input": null,
+    "logoPreview": null
+  },
+  "dashboard-1920x925": {
+    "url": "/dashboard",
+    "topbar": {
+      "width": 1920,
+      "height": 40,
+      "left": 0,
+      "right": 1920
+    },
+    "settingsLayout": null,
+    "settingsColumns": null,
+    "headingFont": null,
+    "input": null,
+    "logoPreview": null
+  },
+  "organizacion-1280x800": {
+    "url": "/settings/organizacion",
+    "topbar": {
+      "width": 1280,
+      "height": 40,
+      "left": 0,
+      "right": 1280
+    },
+    "settingsLayout": {
+      "width": 1152,
+      "height": 870.34375,
+      "left": 0,
+      "right": 1152
+    },
+    "settingsColumns": "168px 968px",
+    "headingFont": "17px",
+    "input": {
+      "width": 461.40625,
+      "height": 30,
+      "left": 199.390625,
+      "right": 660.796875
+    },
+    "logoPreview": {
+      "width": 64,
+      "height": 64,
+      "left": 199.390625,
+      "right": 263.390625
+    }
+  },
+  "notifications-1280x800": {
+    "url": "/settings/notifications",
+    "topbar": {
+      "width": 1280,
+      "height": 40,
+      "left": 0,
+      "right": 1280
+    },
+    "settingsLayout": {
+      "width": 1152,
+      "height": 870.34375,
+      "left": 0,
+      "right": 1152
+    },
+    "settingsColumns": "168px 968px",
+    "headingFont": "17px",
+    "input": null,
+    "logoPreview": null
+  },
+  "dashboard-1280x800": {
+    "url": "/dashboard",
+    "topbar": {
+      "width": 1280,
+      "height": 40,
+      "left": 0,
+      "right": 1280
+    },
+    "settingsLayout": null,
+    "settingsColumns": null,
+    "headingFont": null,
+    "input": null,
+    "logoPreview": null
+  },
+  "landing": {
+    "fontSize": "56px",
+    "text": "La clínica ordenada, el equipo tranquilo"
+  }
+}

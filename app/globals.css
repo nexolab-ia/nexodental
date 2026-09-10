@@ -2850,3 +2850,109 @@ textarea[aria-invalid="true"] {
     min-height: 44px;
   }
 }
+
+
+/* Settings chrome and organization proportions aligned to the 1920x925 reference. */
+.app-compact .topbar { min-height: 40px; padding-block: 0.25rem; }
+.app-compact .topbar-brand > svg { width: 18px; height: 18px; }
+.app-compact .topbar-desktop-nav .primary-nav a { min-height: 30px; padding: 0.25rem 0.6rem; }
+.app-compact .topbar-actions .icon-button { width: 30px; height: 30px; min-width: 30px; }
+.app-compact .topbar-actions .icon-button svg { width: 16px; height: 16px; }
+.app-compact .settings-layout { grid-template-columns: 10.5rem minmax(0, 1fr); max-width: 72rem; }
+.app-compact .settings-nav a { position: relative; font-size: 11.5px; }
+.app-compact .settings-nav a[aria-current="page"]::after {
+  position: absolute;
+  inset: auto 0.55rem 0;
+  border-block-end: 1px dashed var(--accent);
+  content: "";
+}
+.app-compact :is(.organization-heading, .members-heading, .billing-heading, .blocks-header, .session-types-heading) h1 {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+.app-compact :is(.organization-heading, .members-heading, .billing-heading, .blocks-header, .session-types-heading) > div > p,
+.app-compact :is(.organization-heading, .members-heading, .billing-heading, .blocks-header, .session-types-heading) > p {
+  font-size: 12px;
+}
+.app-compact .organization-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.app-compact .organization-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: none;
+  padding-block: 0.15rem;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.app-compact .organization-help:hover { color: var(--ink); }
+.app-compact .organization-help:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.app-compact .organization-help svg,
+.app-compact .organization-card-heading > svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.app-compact .organization-card-heading { display: flex; align-items: flex-start; gap: 0.55rem; }
+.app-compact .organization-card-heading > svg {
+  flex: none;
+  margin-block-start: 0.05rem;
+  color: var(--accent);
+}
+.app-compact .organization-card-heading h2,
+.app-compact .organization-card-heading p { margin: 0; }
+.app-compact .organization-card-heading p { margin-block-start: 0.15rem; }
+.app-compact .organization-logo-row {
+  padding-block-end: 0.85rem;
+  border-block-end: 1px solid var(--border);
+}
+.app-compact .organization-logo-row,
+.app-compact .organization-logo-row .logo-picker { gap: 0.75rem; }
+.app-compact .logo-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+.app-compact .logo-preview svg { width: 18px; height: 18px; }
+.app-compact .logo-caption { gap: 0.1rem; }
+.app-compact .logo-caption strong,
+.app-compact .logo-caption p { font-size: 11px; }
+.app-compact .logo-actions { margin-block-start: 0.35rem; }
+.app-compact .logo-actions .button {
+  min-height: 26px;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 11px;
+}
+.app-compact .organization-fields,
+.app-compact .organization-col,
+.app-compact .organization-hours { gap: 0.9rem; }
+.app-compact .organization-settings :is(.organization-fields, .organization-hours) label { font-size: 11px; }
+.app-compact .organization-settings :is(.organization-fields, .organization-hours) :is(input, select) {
+  min-height: 1.875rem;
+  padding-block: 0.3rem;
+  font-size: 13px;
+}
+@media (max-width: 767px) {
+  .app-compact .settings-layout { max-width: none; }
+  .app-compact .organization-heading { align-items: flex-start; }
+}
+
+.app-compact .organization-hours { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.app-compact .organization-settings :is(.organization-fields, .organization-hours) :is(input, select) { box-sizing: border-box; height: 1.875rem; min-height: 1.875rem; padding-block: 0.2rem; }
+.app-compact .organization-settings .phone-control { box-sizing: border-box; min-height: 1.875rem; height: 1.875rem; padding-block: 0.2rem; }
+.app-compact .organization-settings .phone-country { padding-block: 0.15rem; font-size: 13px; }
+.app-compact .organization-settings .phone-control input[type="tel"] { height: auto; min-height: 0; padding-block: 0; font-size: 13px; }
+@media (max-width: 680px) { .app-compact .organization-hours { grid-template-columns: 1fr; } }

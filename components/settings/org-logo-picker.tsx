@@ -53,7 +53,7 @@ export function OrgLogoPicker({ name, initial = null, children }: OrgLogoPickerP
 
   return <div className="logo-picker">
     <div className="logo-preview">
-      {preview ? <NextImage src={preview} alt="Logo de la clínica" width={96} height={96} unoptimized/> : <><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7.5 8.4 5h7.2L17 7.5h2A2 2 0 0 1 21 9.5v8A2 2 0 0 1 19 19H5a2 2 0 0 1-2-2v-7.5a2 2 0 0 1 2-2h2Z"/><circle cx="12" cy="13" r="3.25"/></svg><span>Sin imagen</span></>}
+      {preview ? <NextImage src={preview} alt="Logo de la clínica" width={64} height={64} unoptimized/> : <><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7.5 8.4 5h7.2L17 7.5h2A2 2 0 0 1 21 9.5v8A2 2 0 0 1 19 19H5a2 2 0 0 1-2-2v-7.5a2 2 0 0 1 2-2h2Z"/><circle cx="12" cy="13" r="3.25"/></svg><span>Sin imagen</span></>}
     </div>
     <div className="logo-caption">
       {children}
