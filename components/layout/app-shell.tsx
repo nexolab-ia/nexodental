@@ -15,7 +15,7 @@ export function AppShell({
   convenios: ConvenioOption[];
 }) {
   return (
-    <div className="app-shell">
+    <div className="app-shell app-compact">
       <header className="app-header">
         <div className="topbar">
           <a className="topbar-brand" href="/dashboard" title={identity.displayName}>

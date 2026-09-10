@@ -2670,3 +2670,183 @@ textarea[aria-invalid="true"] {
 @media (max-width: 820px) { .notif-editor-grid { grid-template-columns: 1fr; } .notif-user-row { grid-template-columns: 2.35rem minmax(0, 1fr) auto; } .notif-user-channels { grid-column: 2 / -1; justify-content: flex-start; } }
 @media (max-width: 600px) { .notif-shell .agenda-online-tabs { overflow-x: auto; padding-inline: 1rem; } .notif-panel-head { align-items: stretch; flex-direction: column; padding: 1rem; } .notif-panel-head .button { width: 100%; } .notif-section { padding: 1rem; } .notif-setting-row { align-items: flex-start; } .notif-matrix { overflow-x: auto; } .notif-matrix-head, .notif-matrix-row { min-width: 24rem; } .notif-user-row { grid-template-columns: 2.35rem minmax(0, 1fr); } .notif-receive, .notif-user-channels { grid-column: 1 / -1; justify-content: space-between; } .notif-user-channels label { flex: 1; justify-content: space-between; } .notif-editor-help { align-items: flex-end; flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { .notif-whatsapp-editor, .notif-user-channels { transition: none; } }
+
+
+/* Authenticated shell density. Public surfaces intentionally remain on the global scale. */
+.app-compact {
+  font-size: 12.5px;
+}
+.app-compact h1,
+.app-compact .agenda-heading h1,
+.app-compact .session-types-heading h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.app-compact h2 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+.app-compact h3 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.app-compact p,
+.app-compact label {
+  font-size: 12.5px;
+}
+.app-compact .muted,
+.app-compact small,
+.app-compact [class*="description"],
+.app-compact [class*="-desc"] {
+  font-size: 11px;
+}
+.app-compact button,
+.app-compact .button {
+  padding: 0.4rem 0.75rem;
+  font-size: 12.5px;
+}
+.app-compact input:not([type="checkbox"]):not([type="radio"]),
+.app-compact select,
+.app-compact textarea {
+  min-height: 2.1rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 12.5px;
+}
+.app-compact .topbar {
+  min-height: 48px;
+  padding-block: 0.35rem;
+}
+.app-compact .topbar-brand > svg {
+  width: 22px;
+  height: 22px;
+}
+.app-compact .tenant-identity {
+  font-size: 12.5px;
+}
+.app-compact .topbar-desktop-nav .primary-nav a {
+  min-height: 34px;
+  padding-block: 0.35rem;
+  font-size: 12.5px;
+}
+.app-compact .primary-nav svg,
+.app-compact .bottom-tabs svg,
+.app-compact .settings-nav svg,
+.app-compact .calendar-settings-heading svg,
+.app-compact .agenda-online-section-heading h2 svg {
+  width: 16px;
+  height: 16px;
+}
+.app-compact .settings-layout {
+  grid-template-columns: 8.75rem minmax(0, 1fr);
+  gap: 1rem;
+}
+.app-compact .settings-group {
+  font-size: 10px;
+}
+.app-compact .settings-nav a {
+  min-height: 32px;
+  padding: 0.35rem 0.55rem;
+  font-size: 12px;
+}
+.app-compact .settings-page {
+  max-width: none;
+}
+.app-compact .notif-setting-row,
+.app-compact .calendar-setting-row,
+.app-compact .permission-row {
+  min-height: 44px;
+  padding-block: 0.5rem;
+}
+.app-compact .agenda-online-tabs button,
+.app-compact .members-tab,
+.app-compact .billing-tabs button {
+  min-height: 32px;
+  padding-block: 0.4rem;
+  font-size: 12.5px;
+}
+.app-compact .settings-card,
+.app-compact .notif-section,
+.app-compact .block-card {
+  padding: 0.9rem;
+}
+.app-compact .notif-panel-head .button,
+.app-compact .blocks-header .button,
+.app-compact .members-invite-button,
+.app-compact .permissions-actions .button,
+.app-compact .calendar-settings-actions .button,
+.app-compact .agenda-online-actions .button,
+.app-compact .agenda-online-professional-actions .button,
+.app-compact .session-types-heading .button {
+  min-height: 32px;
+}
+.app-compact .date-nav > a:not(.button) {
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 1.05rem;
+}
+.app-compact .date-nav button,
+.app-compact .date-nav .button {
+  min-height: 2.1rem;
+}
+.app-compact .notif-editor-grid {
+  grid-template-columns: minmax(0, 1.6fr) minmax(14rem, 1fr);
+}
+
+@media (max-width: 900px) {
+  .app-compact .notif-editor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-compact .settings-layout {
+    grid-template-columns: 1fr;
+  }
+  .app-compact button,
+  .app-compact .button,
+  .app-compact input:not([type="checkbox"]):not([type="radio"]),
+  .app-compact select,
+  .app-compact textarea,
+  .app-compact .agenda-online-tabs button,
+  .app-compact .members-tab,
+  .app-compact .billing-tabs button,
+  .app-compact .settings-nav a {
+    min-height: 44px;
+  }
+}
+
+.app-compact .notif-setting-row {
+  padding-block: 0.3rem;
+}
+.app-compact .notif-setting-row strong,
+.app-compact .notif-setting-row p {
+  line-height: 1.25;
+}
+.app-compact .notif-setting-row p {
+  margin-block-start: 0.1rem;
+}
+
+.app-compact button,
+.app-compact .button {
+  line-height: 1.4;
+}
+.app-compact .notif-section {
+  padding: 0.85rem;
+}
+
+.app-compact .settings-nav {
+  gap: 0.35rem;
+}
+
+@media (max-width: 767px) {
+  .app-compact .notif-panel-head .button,
+  .app-compact .blocks-header .button,
+  .app-compact .members-invite-button,
+  .app-compact .permissions-actions .button,
+  .app-compact .calendar-settings-actions .button,
+  .app-compact .agenda-online-actions .button,
+  .app-compact .agenda-online-professional-actions .button,
+  .app-compact .session-types-heading .button {
+    min-height: 44px;
+  }
+}
